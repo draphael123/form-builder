@@ -2,9 +2,9 @@
 
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { newHireFormConfig } from '@/lib/form-config';
-import { Question } from '@/types/form';
+import { Question, FormSection as FormSectionType } from '@/types/form';
 import {
   FormSection,
   TextField,
@@ -20,6 +20,7 @@ import {
 
 export default function FormPage() {
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -28,6 +29,7 @@ export default function FormPage() {
     handleSubmit,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm<Record<string, unknown>>();
 
@@ -46,6 +48,21 @@ export default function FormPage() {
 
     return currentValue === equals;
   };
+
+  // Check if a section should be shown (has at least one visible question)
+  const shouldShowSection = (section: FormSectionType): boolean => {
+    return section.questions.some((question) => shouldShowQuestion(question));
+  };
+
+  // Get visible sections only
+  const visibleSections = useMemo(() => {
+    return newHireFormConfig.sections.filter((section) => shouldShowSection(section));
+  }, [watchedValues]);
+
+  const totalPages = visibleSections.length;
+  const currentSection = visibleSections[currentPage];
+  const isLastPage = currentPage === totalPages - 1;
+  const isFirstPage = currentPage === 0;
 
   // Render a question based on its type
   const renderQuestion = (question: Question) => {
@@ -93,6 +110,26 @@ export default function FormPage() {
     }
   };
 
+  // Handle next page
+  const handleNext = async () => {
+    // Validate current section's fields
+    const currentQuestions = currentSection.questions.filter(shouldShowQuestion);
+    const fieldIds = currentQuestions.map((q) => q.id);
+
+    const isValid = await trigger(fieldIds);
+
+    if (isValid) {
+      setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Handle previous page
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 0));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const onSubmit = async (data: Record<string, unknown>) => {
     setIsSubmitting(true);
     setSubmitError(null);
@@ -132,24 +169,43 @@ export default function FormPage() {
               {newHireFormConfig.title}
             </h1>
             {newHireFormConfig.description && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 whitespace-pre-line">
                 {newHireFormConfig.description}
               </p>
             )}
           </div>
         </div>
 
+        {/* Progress Indicator */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <span className="text-sm text-gray-500">
+              {Math.round(((currentPage + 1) / totalPages) * 100)}% complete
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentPage + 1) / totalPages) * 100}%` }}
+            />
+          </div>
+        </div>
+
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {newHireFormConfig.sections.map((section) => (
+          {/* Current Section */}
+          {currentSection && (
             <FormSection
-              key={section.id}
-              title={section.title}
-              description={section.description}
+              key={currentSection.id}
+              title={currentSection.title}
+              description={currentSection.description}
             >
-              {section.questions.map((question) => renderQuestion(question))}
+              {currentSection.questions.map((question) => renderQuestion(question))}
             </FormSection>
-          ))}
+          )}
 
           {/* Error Message */}
           {submitError && (
@@ -158,45 +214,68 @@ export default function FormPage() {
             </div>
           )}
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between gap-4">
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`px-6 py-2 rounded-md text-white font-medium transition-colors ${
-                isSubmitting
-                  ? 'bg-blue-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
+              type="button"
+              onClick={handlePrevious}
+              disabled={isFirstPage}
+              className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                isFirstPage
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              {isSubmitting ? (
-                <span className="flex items-center gap-2">
-                  <svg
-                    className="animate-spin h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Submitting...
-                </span>
-              ) : (
-                newHireFormConfig.submitButtonText || 'Submit'
-              )}
+              Previous
             </button>
+
+            {isLastPage ? (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`px-6 py-2 rounded-md text-white font-medium transition-colors ${
+                  isSubmitting
+                    ? 'bg-blue-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Submitting...
+                  </span>
+                ) : (
+                  newHireFormConfig.submitButtonText || 'Submit'
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="px-6 py-2 rounded-md text-white font-medium bg-blue-600 hover:bg-blue-700 transition-colors"
+              >
+                Next
+              </button>
+            )}
           </div>
         </form>
 

@@ -25,8 +25,9 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'anyOtherNamesUsed',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Any Other Names Used',
+          placeholder: 'Select an option',
           required: true,
           options: [
             { label: 'Yes', value: 'Yes' },
@@ -75,8 +76,9 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'genderPronouns',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Gender / Pronouns',
+          placeholder: 'Select gender/pronouns',
           required: true,
           options: [
             { label: 'Female: She/Her', value: 'Female: She/Her' },
@@ -94,23 +96,24 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'citizenshipStatus',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Citizenship / Immigration Status',
+          placeholder: 'Select citizenship status',
           required: true,
-          allowOther: true,
           options: [
             { label: 'U.S. Citizen', value: 'U.S. Citizen' },
             { label: 'Permanent Resident', value: 'Permanent Resident' },
             { label: 'Temporary Visa Holder', value: 'Temporary Visa Holder' },
+            { label: 'Other', value: 'Other' },
           ],
         },
         {
           id: 'raceEthnicity',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Race / Ethnicity',
           description: 'Please select one or more of the following that best describes your race/ethnicity:',
+          placeholder: 'Select race/ethnicity',
           required: true,
-          allowOther: true,
           options: [
             { label: 'Hispanic or Latino', value: 'Hispanic or Latino' },
             { label: 'White (Not Hispanic or Latino)', value: 'White (Not Hispanic or Latino)' },
@@ -120,12 +123,14 @@ export const newHireFormConfig: FormConfig = {
             { label: 'American Indian or Alaska Native (Not Hispanic or Latino)', value: 'American Indian or Alaska Native (Not Hispanic or Latino)' },
             { label: 'Two or More Races (Not Hispanic or Latino)', value: 'Two or More Races (Not Hispanic or Latino)' },
             { label: 'Prefer not to answer', value: 'Prefer not to answer' },
+            { label: 'Other', value: 'Other' },
           ],
         },
         {
           id: 'speaksOtherLanguages',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Do you speak any languages other than English fluently?',
+          placeholder: 'Select an option',
           required: true,
           options: [
             { label: 'Yes', value: 'Yes' },
@@ -217,8 +222,9 @@ export const newHireFormConfig: FormConfig = {
       questions: [
         {
           id: 'isClinicalStaff',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Are you either a MD, DO, NP or RN',
+          placeholder: 'Select an option',
           required: true,
           options: [
             { label: 'Yes', value: 'Yes' },
@@ -340,8 +346,9 @@ export const newHireFormConfig: FormConfig = {
       questions: [
         {
           id: 'typeOfProvider',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Type of Provider',
+          placeholder: 'Select provider type',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -475,9 +482,10 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'hasCompactRNLicense',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Compact State RN License',
           description: 'Do you have a compact RN license?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -514,8 +522,9 @@ export const newHireFormConfig: FormConfig = {
       questions: [
         {
           id: 'hasBoardCertificate',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Do you have a Board Certificate?',
+          placeholder: 'Select an option',
           required: false,
           showWhen: {
             field: 'isClinicalStaff',
@@ -573,8 +582,9 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'isNPorRN',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Are you either a NP or RN?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -648,8 +658,9 @@ export const newHireFormConfig: FormConfig = {
       questions: [
         {
           id: 'isMDorDO',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Are you an MD or DO?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -760,8 +771,9 @@ export const newHireFormConfig: FormConfig = {
       questions: [
         {
           id: 'convictedOfCrime',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Have you ever been convicted of, pled guilty or nolo contendere to a crime (felony or misdemeanor) in any jurisdiction?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -784,8 +796,9 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'disciplinaryActions',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Do you currently have any disciplinary actions, investigations, or pending complaints against any health care license in any jurisdiction?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -808,8 +821,9 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'licenseRevoked',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Have you ever had a license revoked, suspended, or otherwise acted against in another state or country?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -832,8 +846,9 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'underInvestigation',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Are you currently under investigation in any jurisdiction?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -863,8 +878,9 @@ export const newHireFormConfig: FormConfig = {
       questions: [
         {
           id: 'medicalConditionImpairAbility',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Do you have any medical condition(s) that could impair your ability to practice safely?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -887,8 +903,9 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'substancesImpairAbility',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Do you use any substances that impair your ability to practice safely?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -911,8 +928,9 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'substanceUseDisorder',
-          type: 'multiple-choice',
+          type: 'dropdown',
           label: 'Have you been treated for or diagnosed with a substance use disorder in the past 5 years?',
+          placeholder: 'Select an option',
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
