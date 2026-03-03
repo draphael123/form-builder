@@ -14,7 +14,7 @@ export const newHireFormConfig: FormConfig = {
         {
           id: 'email',
           type: 'short-text',
-          label: 'Email',
+          label: 'Email Address',
           required: true,
         },
         {
@@ -34,44 +34,17 @@ export const newHireFormConfig: FormConfig = {
             { label: 'No', value: 'No' },
           ],
         },
-      ],
-    },
-    {
-      id: 'other-names-used',
-      title: 'If Yes: Other Names Used',
-      questions: [
-        {
-          id: 'otherNamesDetails',
-          type: 'long-text',
-          label: 'Provide full name and dates used',
-          description: 'Example: John Rain Doe: 09/01/1986–11/01/2019',
-          required: true,
-          showWhen: {
-            field: 'anyOtherNamesUsed',
-            equals: 'Yes',
-          },
-        },
-        {
-          id: 'nameChangeDocuments',
-          type: 'file-upload',
-          label: 'Upload name change documents',
-          required: true,
-          showWhen: {
-            field: 'anyOtherNamesUsed',
-            equals: 'Yes',
-          },
-        },
-      ],
-    },
-    {
-      id: 'profile-continued',
-      title: 'Profile Continued',
-      questions: [
         {
           id: 'dateOfBirth',
           type: 'date',
           label: 'Date of Birth',
           description: 'Example: January 7, 2019',
+          required: true,
+        },
+        {
+          id: 'placeOfBirth',
+          type: 'short-text',
+          label: 'Place of Birth (City, State, Country)',
           required: true,
         },
         {
@@ -127,39 +100,6 @@ export const newHireFormConfig: FormConfig = {
           ],
         },
         {
-          id: 'speaksOtherLanguages',
-          type: 'dropdown',
-          label: 'Do you speak any languages other than English fluently?',
-          placeholder: 'Select an option',
-          required: true,
-          options: [
-            { label: 'Yes', value: 'Yes' },
-            { label: 'No', value: 'No' },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'languages-spoken',
-      title: 'If Yes: Languages Spoken',
-      questions: [
-        {
-          id: 'languagesSpoken',
-          type: 'long-text',
-          label: 'List all languages spoken fluently.',
-          required: true,
-          showWhen: {
-            field: 'speaksOtherLanguages',
-            equals: 'Yes',
-          },
-        },
-      ],
-    },
-    {
-      id: 'profile-continued-2',
-      title: 'Profile Continued',
-      questions: [
-        {
           id: 'homeMailingAddress',
           type: 'short-text',
           label: 'Home Mailing Address',
@@ -196,16 +136,10 @@ export const newHireFormConfig: FormConfig = {
           label: 'Emergency Contact Number',
           required: true,
         },
-      ],
-    },
-    {
-      id: 'documents-upload',
-      title: 'Documents Upload / Identification',
-      questions: [
         {
           id: 'driversLicenseGovernmentId',
           type: 'file-upload',
-          label: 'Driver\'s License / Government ID',
+          label: "Driver's License / Government ID",
           required: true,
         },
         {
@@ -217,8 +151,79 @@ export const newHireFormConfig: FormConfig = {
       ],
     },
     {
-      id: 'profile-wrap-up',
-      title: 'Profile Wrap-Up',
+      id: 'other-names-section',
+      title: 'If Yes: Other Names Used',
+      questions: [
+        {
+          id: 'nameChangeDocuments',
+          type: 'file-upload',
+          label: 'Upload name change documents',
+          required: true,
+          showWhen: {
+            field: 'anyOtherNamesUsed',
+            equals: 'Yes',
+          },
+        },
+      ],
+    },
+    {
+      id: 'languages-section',
+      title: 'Languages',
+      questions: [
+        {
+          id: 'speaksOtherLanguages',
+          type: 'dropdown',
+          label: 'Do you speak any languages other than English fluently?',
+          placeholder: 'Select an option',
+          required: true,
+          options: [
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' },
+          ],
+        },
+        {
+          id: 'languagesSpoken',
+          type: 'long-text',
+          label: 'List all languages spoken fluently.',
+          required: true,
+          showWhen: {
+            field: 'speaksOtherLanguages',
+            equals: 'Yes',
+          },
+        },
+      ],
+    },
+    {
+      id: 'non-clinical-signature',
+      title: 'Certification / Signature (Non-Clinical Staff)',
+      description: 'By submitting this form, I certify that the information provided above is accurate, complete, and truthful to the best of my knowledge.',
+      questions: [
+        {
+          id: 'printedName',
+          type: 'short-text',
+          label: 'Printed Name',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'No',
+          },
+        },
+        {
+          id: 'signatureDate',
+          type: 'date',
+          label: 'Date',
+          description: 'Example: January 7, 2019',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'No',
+          },
+        },
+      ],
+    },
+    {
+      id: 'clinical-question',
+      title: 'Clinical Staff Check',
       questions: [
         {
           id: 'isClinicalStaff',
@@ -234,99 +239,10 @@ export const newHireFormConfig: FormConfig = {
       ],
     },
     {
-      id: 'certification-signature-non-clinical',
-      title: 'Certification / Signature',
-      description: 'By submitting this form, I certify that the information provided above is accurate, complete, and truthful to the best of my knowledge.',
-      questions: [
-        {
-          id: 'printedNameNonClinical',
-          type: 'short-text',
-          label: 'Printed Name',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'No',
-          },
-        },
-        {
-          id: 'dateNonClinical',
-          type: 'date',
-          label: 'Date',
-          description: 'Example: January 7, 2019',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'No',
-          },
-        },
-      ],
-    },
-    {
-      id: 'licensing-certifications',
+      id: 'licensing-info',
       title: 'Licensing & Certifications Information (Clinical Staff)',
-      description: 'For clinical staff (MD, DO, NP, RN) only. Please list all licenses, certificates, and any legal / disciplinary history and upload required documents. Non Clinical Staff do not need to fill this form.\n\nPlease provide the following information for licensing applications and renewals. The Licensing Team can submit on your behalf.',
+      description: 'For clinical staff (MD, DO, NP, RN) only. Please list all licenses, certificates, and any legal / disciplinary history and upload required documents.',
       questions: [
-        {
-          id: 'placeOfBirth',
-          type: 'short-text',
-          label: 'Place of Birth (City, State, Country)',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-        },
-        {
-          id: 'eyeColor',
-          type: 'short-text',
-          label: 'What is your eye color?',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-        },
-        {
-          id: 'hairColor',
-          type: 'short-text',
-          label: 'What is your hair color?',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-        },
-        {
-          id: 'height',
-          type: 'short-text',
-          label: 'What is your height?',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-        },
-        {
-          id: 'weight',
-          type: 'short-text',
-          label: 'What is your weight?',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-        },
-        {
-          id: 'mothersMaidenName',
-          type: 'short-text',
-          label: 'Mothers Maiden Name',
-          description: 'To verify your license in specific states, please provide your mother\'s maiden name.\nIf not applicable, enter NA.',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-        },
         {
           id: 'maidenName',
           type: 'short-text',
@@ -338,12 +254,28 @@ export const newHireFormConfig: FormConfig = {
             equals: 'Yes',
           },
         },
-      ],
-    },
-    {
-      id: 'licensing-certifications-2',
-      title: 'Licensing & Certifications Information (Clinical Staff)',
-      questions: [
+        {
+          id: 'otherNamesDetails',
+          type: 'long-text',
+          label: 'Provide full name and dates used',
+          description: 'Example: John Rain Doe: 09/01/1986–11/01/2019',
+          required: false,
+          showWhen: {
+            field: 'anyOtherNamesUsed',
+            equals: 'Yes',
+          },
+        },
+        {
+          id: 'mothersMaidenName',
+          type: 'short-text',
+          label: 'Mothers Maiden Name',
+          description: "To verify your license in specific states, please provide your mother's maiden name.\nIf not applicable, enter NA.",
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+        },
         {
           id: 'typeOfProvider',
           type: 'dropdown',
@@ -365,7 +297,7 @@ export const newHireFormConfig: FormConfig = {
           id: 'specialty',
           type: 'short-text',
           label: 'Specialty',
-          description: 'Example: \'Family Health\' or \'Internal Medicine\'.\nIf not applicable, enter NA.',
+          description: "Example: 'Family Health' or 'Internal Medicine'.\nIf not applicable, enter NA.",
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -398,7 +330,7 @@ export const newHireFormConfig: FormConfig = {
           id: 'statesLicensed',
           type: 'checkbox',
           label: 'States Licensed',
-          description: 'Please select all states where you\'re currently licensed',
+          description: "Please select all states where you're currently licensed",
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
@@ -456,6 +388,7 @@ export const newHireFormConfig: FormConfig = {
             { label: 'Washington', value: 'Washington' },
             { label: 'West Virginia', value: 'West Virginia' },
             { label: 'Wisconsin', value: 'Wisconsin' },
+            { label: 'Wyoming', value: 'Wyoming' },
           ],
         },
         {
@@ -496,12 +429,6 @@ export const newHireFormConfig: FormConfig = {
             { label: 'No', value: 'No' },
           ],
         },
-      ],
-    },
-    {
-      id: 'compact-rn-license',
-      title: 'If Yes: Compact RN License',
-      questions: [
         {
           id: 'compactRNLicenseDetails',
           type: 'long-text',
@@ -513,13 +440,6 @@ export const newHireFormConfig: FormConfig = {
             equals: 'Yes',
           },
         },
-      ],
-    },
-    {
-      id: 'board-certifications',
-      title: 'Board Certification(s)',
-      description: 'Please note the Licensing Team will be reaching out to gather login information to submit applications and renewals on your behalf. This will help them initiate and process applications efficiently.',
-      questions: [
         {
           id: 'hasBoardCertificate',
           type: 'dropdown',
@@ -535,12 +455,6 @@ export const newHireFormConfig: FormConfig = {
             { label: 'No', value: 'No' },
           ],
         },
-      ],
-    },
-    {
-      id: 'board-certifications-details',
-      title: 'If Yes: Board Certifications',
-      questions: [
         {
           id: 'boardCertificationsList',
           type: 'long-text',
@@ -563,12 +477,6 @@ export const newHireFormConfig: FormConfig = {
             equals: 'Yes',
           },
         },
-      ],
-    },
-    {
-      id: 'supporting-documents-np-rn',
-      title: 'Supporting Documents NP/RN',
-      questions: [
         {
           id: 'csrDetails',
           type: 'long-text',
@@ -580,44 +488,12 @@ export const newHireFormConfig: FormConfig = {
             equals: 'Yes',
           },
         },
-        {
-          id: 'isNPorRN',
-          type: 'dropdown',
-          label: 'Are you either a NP or RN?',
-          placeholder: 'Select an option',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-          options: [
-            { label: 'Yes', value: 'Yes' },
-            { label: 'No', value: 'No' },
-          ],
-        },
       ],
     },
     {
-      id: 'np-rn-continued',
-      title: 'NP/RN - Continued',
-      questions: [
-        {
-          id: 'nursysLicenseUpload',
-          type: 'file-upload',
-          label: 'Nursys Medical License Upload',
-          description: 'Upload a recent Nursys-Quick Confirm-License-Verification-report pulled within the last 30 days.',
-          required: true,
-          showWhen: {
-            field: 'isNPorRN',
-            equals: 'Yes',
-          },
-        },
-      ],
-    },
-    {
-      id: 'education-training',
+      id: 'education-section',
       title: 'Education & Training',
-      description: 'Format: School (City, State) / Program Name (Month & Year Attended) Completed: Month & Year\n\nExample:\nLincoln Middle School (Fort Collins, Colorado) (9/2005 – 6/2008) Completed: 6/2008\n\nIf attended more than one school please indicate on a separate row.',
+      description: 'Format: School (City, State) / Program Name (Month & Year Attended) Completed: Month & Year\n\nExample:\nLincoln Middle School (Fort Collins, Colorado) (9/2005 – 6/2008) Completed: 6/2008',
       questions: [
         {
           id: 'middleSchool',
@@ -650,33 +526,6 @@ export const newHireFormConfig: FormConfig = {
             equals: 'Yes',
           },
         },
-      ],
-    },
-    {
-      id: 'md-do-section',
-      title: 'MD or DO',
-      questions: [
-        {
-          id: 'isMDorDO',
-          type: 'dropdown',
-          label: 'Are you an MD or DO?',
-          placeholder: 'Select an option',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-          options: [
-            { label: 'Yes', value: 'Yes' },
-            { label: 'No', value: 'No' },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'md-do-education',
-      title: 'MD/DO - Education',
-      questions: [
         {
           id: 'medicalSchoolProgram',
           type: 'long-text',
@@ -684,24 +533,17 @@ export const newHireFormConfig: FormConfig = {
           description: 'Format: School (City, State) / Program Name (Month & Year Attended) Completed: Month & Year',
           required: true,
           showWhen: {
-            field: 'isMDorDO',
+            field: 'isClinicalStaff',
             equals: 'Yes',
           },
         },
-      ],
-    },
-    {
-      id: 'internship-residency-fellowship',
-      title: 'Internship / Residency / Fellowship (MD or DO providers only)',
-      description: 'List all programs in chronological order. Any gaps of 30 days or more must be explained.\n\nFormat: Program / Institution Name, Role / Title, Program / Degree Earned (Month & Year Attended) Completed: Month & Year\n\nExample:\nGeneral Hospital, Internal Medicine Resident, Internal Medicine Residency (7/2014 – 6/2017) Completed: 6/2017',
-      questions: [
         {
           id: 'internshipsResidenciesFellowships',
           type: 'long-text',
           label: 'Please list all internships, residencies, and fellowships in chronological order.',
           required: true,
           showWhen: {
-            field: 'isMDorDO',
+            field: 'isClinicalStaff',
             equals: 'Yes',
           },
         },
@@ -765,7 +607,7 @@ export const newHireFormConfig: FormConfig = {
       ],
     },
     {
-      id: 'legal-disciplinary-history',
+      id: 'legal-disciplinary',
       title: 'License, Legal, or Disciplinary History',
       description: 'Please answer Yes or No to each question. If you answer Yes provide a brief explanation.',
       questions: [
@@ -967,7 +809,7 @@ export const newHireFormConfig: FormConfig = {
     {
       id: 'professional-references',
       title: 'Professional Reference',
-      description: 'Please provide the following information for three professional reference:\nFormat: Name, Title/Specialty, Phone, Email, and Known From–To (MM/YY)\n\nExample:\nDr. Jane Smith – Medical Director – (123) 456-7890 – jane.smith@email.com – 01/2020 to 07/2023',
+      description: 'Please provide the following information for three professional references:\nFormat: Name, Title/Specialty, Phone, Email, and Known From–To (MM/YY)\n\nExample:\nDr. Jane Smith – Medical Director – (123) 456-7890 – jane.smith@email.com – 01/2020 to 07/2023',
       questions: [
         {
           id: 'professionalReference1',
@@ -1002,8 +844,108 @@ export const newHireFormConfig: FormConfig = {
       ],
     },
     {
-      id: 'certification-signature-clinical',
-      title: 'Certification / Signature',
+      id: 'physical-description',
+      title: 'Physical Description',
+      questions: [
+        {
+          id: 'eyeColor',
+          type: 'short-text',
+          label: 'What is your eye color?',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+        },
+        {
+          id: 'hairColor',
+          type: 'short-text',
+          label: 'What is your hair color?',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+        },
+        {
+          id: 'height',
+          type: 'short-text',
+          label: 'What is your height?',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+        },
+        {
+          id: 'weight',
+          type: 'short-text',
+          label: 'What is your weight?',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+        },
+      ],
+    },
+    {
+      id: 'md-do-section',
+      title: 'MD or DO Section',
+      description: 'If you are an MD or DO, please select Yes in the section below.',
+      questions: [
+        {
+          id: 'isMDorDO',
+          type: 'dropdown',
+          label: 'Are you an MD or DO?',
+          placeholder: 'Select an option',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+          options: [
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'np-rn-section',
+      title: 'NP or RN Section',
+      questions: [
+        {
+          id: 'nursysLicenseUpload',
+          type: 'file-upload',
+          label: 'Nursys Medical License Upload',
+          description: 'Upload a recent Nursys-Quick Confirm-License-Verification-report pulled within the last 30 days.',
+          required: true,
+          showWhen: {
+            field: 'typeOfProvider',
+            equals: ['NP', 'RN'],
+          },
+        },
+        {
+          id: 'isNPorRN',
+          type: 'dropdown',
+          label: 'Are you either a NP or RN?',
+          placeholder: 'Select an option',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+          options: [
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'clinical-signature',
+      title: 'Certification / Signature (Clinical Staff)',
       description: 'By submitting this form, I certify that the information provided above is accurate, complete, and truthful to the best of my knowledge.',
       questions: [
         {
@@ -1024,6 +966,28 @@ export const newHireFormConfig: FormConfig = {
           required: true,
           showWhen: {
             field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+        },
+        {
+          id: 'rnProgram',
+          type: 'long-text',
+          label: 'RN Program (if applicable)',
+          description: 'If not applicable, enter NA.',
+          required: false,
+          showWhen: {
+            field: 'isNPorRN',
+            equals: 'Yes',
+          },
+        },
+        {
+          id: 'npProgram',
+          type: 'long-text',
+          label: 'NP Program (if applicable)',
+          description: 'If not applicable, enter NA.',
+          required: false,
+          showWhen: {
+            field: 'isNPorRN',
             equals: 'Yes',
           },
         },
