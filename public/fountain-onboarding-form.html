@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fountain Onboarding: New Hire Information</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fountain-teal: #5BA4A4;
+      --fountain-teal-dark: #4a8f8f;
+      --fountain-teal-light: #e8f4f4;
+      --error-red: #d93025;
+      --text-primary: #202124;
+      --text-secondary: #5f6368;
+      --border-color: #dadce0;
+      --bg-gray: #f0f0f0;
+      --white: #ffffff;
+      --shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
+      --shadow-light: 0 1px 2px 0 rgba(60,64,67,0.1), 0 1px 3px 1px rgba(60,64,67,0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-gray);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .form-container {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* Header Card */
+    .form-header {
+      background: var(--white);
+      border-radius: 8px;
+      box-shadow: var(--shadow-light);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .form-header-accent {
+      height: 10px;
+      background: var(--fountain-teal);
+    }
+
+    .form-header-content {
+      padding: 24px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--fountain-teal);
+      margin-bottom: 8px;
+    }
+
+    .form-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .form-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .required-note {
+      font-size: 13px;
+      color: var(--error-red);
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      background: var(--white);
+      border-radius: 8px;
+      box-shadow: var(--shadow-light);
+      padding: 16px 24px;
+      margin-bottom: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--fountain-teal);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* Section Card */
+    .section-card {
+      background: var(--white);
+      border-radius: 8px;
+      box-shadow: var(--shadow-light);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      background: var(--fountain-teal);
+      color: var(--white);
+      padding: 16px 24px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .section-description {
+      padding: 16px 24px 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+
+    .section-content {
+      padding: 0;
+    }
+
+    /* Question Block */
+    .question-block {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .question-block:last-child {
+      border-bottom: none;
+    }
+
+    .question-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .required-asterisk {
+      color: var(--error-red);
+      margin-left: 2px;
+    }
+
+    .question-description {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    /* Input Styles */
+    input[type="text"],
+    input[type="email"],
+    input[type="date"],
+    input[type="tel"] {
+      width: 100%;
+      padding: 12px 0;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+      font-family: inherit;
+      background: transparent;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="date"]:focus,
+    input[type="tel"]:focus {
+      outline: none;
+      border-bottom: 2px solid var(--fountain-teal);
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      min-height: 100px;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--fountain-teal);
+      box-shadow: 0 0 0 2px var(--fountain-teal-light);
+    }
+
+    /* Radio & Checkbox Styles */
+    .radio-group,
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .radio-option,
+    .checkbox-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .radio-option input[type="radio"],
+    .checkbox-option input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--fountain-teal);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .radio-option label,
+    .checkbox-option label {
+      font-size: 14px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    /* Checkbox Grid for States */
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .checkbox-grid .checkbox-option {
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+
+    .checkbox-grid .checkbox-option:hover {
+      background-color: var(--fountain-teal-light);
+    }
+
+    /* File Upload */
+    .file-upload {
+      position: relative;
+    }
+
+    .file-upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: var(--white);
+      border: 1px solid var(--fountain-teal);
+      border-radius: 4px;
+      color: var(--fountain-teal);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .file-upload-btn:hover {
+      background: var(--fountain-teal-light);
+    }
+
+    .file-upload input[type="file"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-name {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Navigation */
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      margin-top: 8px;
+    }
+
+    .nav-btn {
+      padding: 10px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .nav-btn-primary {
+      background: var(--fountain-teal);
+      color: var(--white);
+      border: none;
+    }
+
+    .nav-btn-primary:hover {
+      background: var(--fountain-teal-dark);
+    }
+
+    .nav-btn-secondary {
+      background: transparent;
+      color: var(--fountain-teal);
+      border: none;
+    }
+
+    .nav-btn-secondary:hover {
+      background: var(--fountain-teal-light);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .clear-form {
+      color: var(--fountain-teal);
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .clear-form:hover {
+      text-decoration: underline;
+    }
+
+    .submit-btn {
+      padding: 12px 32px;
+      background: var(--fountain-teal);
+      color: var(--white);
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .submit-btn:hover {
+      background: var(--fountain-teal-dark);
+    }
+
+    /* Footer */
+    .form-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .form-footer a {
+      color: var(--fountain-teal);
+      text-decoration: none;
+    }
+
+    .form-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Page visibility */
+    .form-page {
+      display: none;
+    }
+
+    .form-page.active {
+      display: block;
+    }
+
+    /* Conditional sections */
+    .conditional-section {
+      display: none;
+    }
+
+    .conditional-section.visible {
+      display: block;
+    }
+
+    /* Error states */
+    .error-message {
+      color: var(--error-red);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .input-error {
+      border-bottom-color: var(--error-red) !important;
+    }
+
+    /* Email note */
+    .email-note {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      body {
+        padding: 12px 8px;
+      }
+
+      .form-header-content,
+      .question-block {
+        padding: 16px;
+      }
+
+      .section-header {
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+
+      .checkbox-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-container {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <!-- Header -->
+    <div class="form-header">
+      <div class="form-header-accent"></div>
+      <div class="form-header-content">
+        <div class="logo">Fountain</div>
+        <h1 class="form-title">Fountain Onboarding: New Hire Information</h1>
+        <p class="form-subtitle">Demographic / Personal Information — Please fill out all required fields. This form is for all new hires.</p>
+        <p class="required-note">* Indicates required question</p>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-info">
+        <span id="pageIndicator">Page 1 of 10</span>
+        <span id="percentComplete">10% complete</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 10%"></div>
+      </div>
+    </div>
+
+    <form id="onboardingForm">
+      <!-- PAGE 1: Basic Info -->
+      <div class="form-page active" data-page="1">
+        <div class="section-card">
+          <div class="section-header">Fountain Onboarding: New Hire Information</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Email<span class="required-asterisk">*</span></div>
+              <input type="email" name="email" required>
+              <div class="email-note">Your email will be recorded</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">Fountain Onboarding: New Hire Information</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Full Legal Name (First, Middle, Last, Suffix)<span class="required-asterisk">*</span></div>
+              <input type="text" name="fullLegalName" required>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Any Other Names Used<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="anyOtherNames" id="otherNamesYes" value="Yes" required>
+                  <label for="otherNamesYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="anyOtherNames" id="otherNamesNo" value="No">
+                  <label for="otherNamesNo">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional: Other Names -->
+        <div class="section-card conditional-section" id="otherNamesSection">
+          <div class="section-header">If Yes: Other Names Used</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Provide full name and dates used<span class="required-asterisk">*</span></div>
+              <div class="question-description">Example: John Rain Doe: 09/01/1986–11/01/2019</div>
+              <input type="text" name="otherNamesDetails">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Upload name change documents<span class="required-asterisk">*</span></div>
+              <div class="file-upload">
+                <div class="file-upload-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                  Add file
+                </div>
+                <input type="file" name="nameChangeDocuments">
+                <div class="file-name" id="nameChangeFile"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 2: Profile Continued -->
+      <div class="form-page" data-page="2">
+        <div class="section-card">
+          <div class="section-header">Profile Continued</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Date of Birth<span class="required-asterisk">*</span></div>
+              <input type="date" name="dateOfBirth" required>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Gender / Pronouns<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="genderPronouns" id="genderFemale" value="Female: She/Her" required>
+                  <label for="genderFemale">Female: She/Her</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="genderPronouns" id="genderMale" value="Male: He/Him">
+                  <label for="genderMale">Male: He/Him</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="genderPronouns" id="genderNonBinary" value="Non-binary: They/Them">
+                  <label for="genderNonBinary">Non-binary: They/Them</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="genderPronouns" id="genderPreferNot" value="Prefer not to disclose">
+                  <label for="genderPreferNot">Prefer not to disclose</label>
+                </div>
+              </div>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Social Security Number<span class="required-asterisk">*</span></div>
+              <div class="question-description">Format: ###-##-####</div>
+              <input type="text" name="ssn" placeholder="###-##-####" required>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Citizenship / Immigration Status<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="citizenshipStatus" id="citizenUS" value="U.S. Citizen" required>
+                  <label for="citizenUS">U.S. Citizen</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="citizenshipStatus" id="citizenPR" value="Permanent Resident">
+                  <label for="citizenPR">Permanent Resident</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="citizenshipStatus" id="citizenTV" value="Temporary Visa Holder">
+                  <label for="citizenTV">Temporary Visa Holder</label>
+                </div>
+              </div>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Race / Ethnicity<span class="required-asterisk">*</span></div>
+              <div class="question-description">Please select one or more of the following that best describes your race/ethnicity:</div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="raceEthnicity" id="raceHispanic" value="Hispanic or Latino" required>
+                  <label for="raceHispanic">Hispanic or Latino</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="raceEthnicity" id="raceWhite" value="White (Not Hispanic or Latino)">
+                  <label for="raceWhite">White (Not Hispanic or Latino)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="raceEthnicity" id="raceBlack" value="Black or African American (Not Hispanic or Latino)">
+                  <label for="raceBlack">Black or African American (Not Hispanic or Latino)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="raceEthnicity" id="racePacific" value="Native Hawaiian or Other Pacific Islander (Not Hispanic or Latino)">
+                  <label for="racePacific">Native Hawaiian or Other Pacific Islander (Not Hispanic or Latino)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="raceEthnicity" id="raceAsian" value="Asian (Not Hispanic or Latino)">
+                  <label for="raceAsian">Asian (Not Hispanic or Latino)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="raceEthnicity" id="raceNative" value="American Indian or Alaska Native (Not Hispanic or Latino)">
+                  <label for="raceNative">American Indian or Alaska Native (Not Hispanic or Latino)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="raceEthnicity" id="raceTwoMore" value="Two or More Races (Not Hispanic or Latino)">
+                  <label for="raceTwoMore">Two or More Races (Not Hispanic or Latino)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="raceEthnicity" id="racePreferNot" value="Prefer not to answer">
+                  <label for="racePreferNot">Prefer not to answer</label>
+                </div>
+              </div>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Do you speak any languages other than English fluently?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="speaksOtherLanguages" id="languagesYes" value="Yes" required>
+                  <label for="languagesYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="speaksOtherLanguages" id="languagesNo" value="No">
+                  <label for="languagesNo">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional: Languages -->
+        <div class="section-card conditional-section" id="languagesSection">
+          <div class="section-header">If Yes: Languages Spoken</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">List all languages spoken fluently<span class="required-asterisk">*</span></div>
+              <input type="text" name="languagesSpoken">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 3: Contact & Documents -->
+      <div class="form-page" data-page="3">
+        <div class="section-card">
+          <div class="section-header">Profile Continued</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Home Mailing Address<span class="required-asterisk">*</span></div>
+              <input type="text" name="homeAddress" required>
+            </div>
+            <div class="question-block">
+              <div class="question-label">City / State / Zip Code<span class="required-asterisk">*</span></div>
+              <input type="text" name="cityStateZip" required>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Preferred Phone Number<span class="required-asterisk">*</span></div>
+              <div class="question-description">Format: ###-###-####</div>
+              <input type="tel" name="phoneNumber" placeholder="###-###-####" required>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Personal Email Address<span class="required-asterisk">*</span></div>
+              <input type="email" name="personalEmail" required>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Emergency Contact Name<span class="required-asterisk">*</span></div>
+              <input type="text" name="emergencyContactName" required>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Emergency Contact Number<span class="required-asterisk">*</span></div>
+              <input type="tel" name="emergencyContactNumber" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">Documents Upload / Identification</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Driver's License / Government ID<span class="required-asterisk">*</span></div>
+              <div class="file-upload">
+                <div class="file-upload-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                  Add file
+                </div>
+                <input type="file" name="driversLicense" required>
+                <div class="file-name" id="driversLicenseFile"></div>
+              </div>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Resume / CV<span class="required-asterisk">*</span></div>
+              <div class="file-upload">
+                <div class="file-upload-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                  Add file
+                </div>
+                <input type="file" name="resumeCV" required>
+                <div class="file-name" id="resumeCVFile"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 4: Profile Wrap-Up & Non-Clinical Signature -->
+      <div class="form-page" data-page="4">
+        <div class="section-card">
+          <div class="section-header">Profile Wrap-Up</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Are you either a MD, DO, NP or RN?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="isClinicalStaff" id="clinicalYes" value="Yes" required>
+                  <label for="clinicalYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="isClinicalStaff" id="clinicalNo" value="No">
+                  <label for="clinicalNo">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Non-Clinical Signature (shown if No) -->
+        <div class="section-card conditional-section" id="nonClinicalSignatureSection">
+          <div class="section-header">Certification / Signature</div>
+          <div class="section-description">By submitting this form, I certify that the information provided above is accurate, complete, and truthful to the best of my knowledge.</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Printed Name<span class="required-asterisk">*</span></div>
+              <input type="text" name="printedNameNonClinical">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Date<span class="required-asterisk">*</span></div>
+              <input type="date" name="signatureDateNonClinical">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 5: Clinical Staff - Licensing Info Part 1 -->
+      <div class="form-page clinical-only" data-page="5">
+        <div class="section-card">
+          <div class="section-header">Licensing & Certifications Information (Clinical Staff)</div>
+          <div class="section-description">Please provide the following information for licensing applications and renewals. The Licensing Team can submit on your behalf.</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Place of Birth (City, State, Country)<span class="required-asterisk">*</span></div>
+              <input type="text" name="placeOfBirth">
+            </div>
+            <div class="question-block">
+              <div class="question-label">What is your eye color?<span class="required-asterisk">*</span></div>
+              <input type="text" name="eyeColor">
+            </div>
+            <div class="question-block">
+              <div class="question-label">What is your hair color?<span class="required-asterisk">*</span></div>
+              <input type="text" name="hairColor">
+            </div>
+            <div class="question-block">
+              <div class="question-label">What is your height?<span class="required-asterisk">*</span></div>
+              <input type="text" name="height">
+            </div>
+            <div class="question-block">
+              <div class="question-label">What is your weight?<span class="required-asterisk">*</span></div>
+              <input type="text" name="weight">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Mothers Maiden Name<span class="required-asterisk">*</span></div>
+              <div class="question-description">To verify your license in specific states, please provide your mother's maiden name. If not applicable, enter NA.</div>
+              <input type="text" name="mothersMaidenName">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Maiden Name<span class="required-asterisk">*</span></div>
+              <div class="question-description">To verify your license in specific states, please provide your maiden name. If not applicable, enter NA.</div>
+              <input type="text" name="maidenName">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 6: Clinical Staff - Licensing Info Part 2 -->
+      <div class="form-page clinical-only" data-page="6">
+        <div class="section-card">
+          <div class="section-header">Licensing & Certifications Information (Clinical Staff)</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Type of Provider<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="providerType" id="providerNP" value="NP">
+                  <label for="providerNP">NP</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="providerType" id="providerRN" value="RN">
+                  <label for="providerRN">RN</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="providerType" id="providerMD" value="MD">
+                  <label for="providerMD">MD</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="providerType" id="providerDO" value="DO">
+                  <label for="providerDO">DO</label>
+                </div>
+              </div>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Specialty<span class="required-asterisk">*</span></div>
+              <div class="question-description">Example: 'Family Health' or 'Internal Medicine'. If not applicable, enter NA.</div>
+              <input type="text" name="specialty">
+            </div>
+            <div class="question-block">
+              <div class="question-label">DEA License Numbers<span class="required-asterisk">*</span></div>
+              <div class="question-description">Include the state, license number, issue date, and expiration date. Format each entry on a new line. If you are an RN, enter NA.</div>
+              <textarea name="deaLicenseNumbers" placeholder="Example: FL– MG123456 – Issued: 2/1/2022 – Exp: 1/31/2029"></textarea>
+            </div>
+            <div class="question-block">
+              <div class="question-label">National Provider Identifier – NPI<span class="required-asterisk">*</span></div>
+              <div class="question-description">If you are an RN, enter NA.</div>
+              <input type="text" name="npi">
+            </div>
+            <div class="question-block">
+              <div class="question-label">States Licensed<span class="required-asterisk">*</span></div>
+              <div class="question-description">Please select all states where you're currently licensed</div>
+              <div class="checkbox-group checkbox-grid">
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Alabama" id="stateAL"><label for="stateAL">Alabama</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Alaska" id="stateAK"><label for="stateAK">Alaska</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Arizona" id="stateAZ"><label for="stateAZ">Arizona</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Arkansas" id="stateAR"><label for="stateAR">Arkansas</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="California" id="stateCA"><label for="stateCA">California</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Colorado" id="stateCO"><label for="stateCO">Colorado</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Connecticut" id="stateCT"><label for="stateCT">Connecticut</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Delaware" id="stateDE"><label for="stateDE">Delaware</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="District of Columbia" id="stateDC"><label for="stateDC">District of Columbia</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Florida" id="stateFL"><label for="stateFL">Florida</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Georgia" id="stateGA"><label for="stateGA">Georgia</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Hawaii" id="stateHI"><label for="stateHI">Hawaii</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Idaho" id="stateID"><label for="stateID">Idaho</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Illinois" id="stateIL"><label for="stateIL">Illinois</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Indiana" id="stateIN"><label for="stateIN">Indiana</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Iowa" id="stateIA"><label for="stateIA">Iowa</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Kansas" id="stateKS"><label for="stateKS">Kansas</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Kentucky" id="stateKY"><label for="stateKY">Kentucky</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Louisiana" id="stateLA"><label for="stateLA">Louisiana</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Maine" id="stateME"><label for="stateME">Maine</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Maryland" id="stateMD"><label for="stateMD">Maryland</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Massachusetts" id="stateMA"><label for="stateMA">Massachusetts</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Michigan" id="stateMI"><label for="stateMI">Michigan</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Minnesota" id="stateMN"><label for="stateMN">Minnesota</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Mississippi" id="stateMS"><label for="stateMS">Mississippi</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Missouri" id="stateMO"><label for="stateMO">Missouri</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Montana" id="stateMT"><label for="stateMT">Montana</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Nebraska" id="stateNE"><label for="stateNE">Nebraska</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Nevada" id="stateNV"><label for="stateNV">Nevada</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="New Hampshire" id="stateNH"><label for="stateNH">New Hampshire</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="New Jersey" id="stateNJ"><label for="stateNJ">New Jersey</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="New Mexico" id="stateNM"><label for="stateNM">New Mexico</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="New York" id="stateNY"><label for="stateNY">New York</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="North Carolina" id="stateNC"><label for="stateNC">North Carolina</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="North Dakota" id="stateND"><label for="stateND">North Dakota</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Ohio" id="stateOH"><label for="stateOH">Ohio</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Oklahoma" id="stateOK"><label for="stateOK">Oklahoma</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Oregon" id="stateOR"><label for="stateOR">Oregon</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Pennsylvania" id="statePA"><label for="statePA">Pennsylvania</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Puerto Rico" id="statePR"><label for="statePR">Puerto Rico</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Rhode Island" id="stateRI"><label for="stateRI">Rhode Island</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="South Carolina" id="stateSC"><label for="stateSC">South Carolina</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="South Dakota" id="stateSD"><label for="stateSD">South Dakota</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Tennessee" id="stateTN"><label for="stateTN">Tennessee</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Texas" id="stateTX"><label for="stateTX">Texas</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Utah" id="stateUT"><label for="stateUT">Utah</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Vermont" id="stateVT"><label for="stateVT">Vermont</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Virginia" id="stateVA"><label for="stateVA">Virginia</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Washington" id="stateWA"><label for="stateWA">Washington</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="West Virginia" id="stateWV"><label for="stateWV">West Virginia</label></div>
+                <div class="checkbox-option"><input type="checkbox" name="statesLicensed" value="Wisconsin" id="stateWI"><label for="stateWI">Wisconsin</label></div>
+              </div>
+            </div>
+            <div class="question-block">
+              <div class="question-label">States License Details — Active Licenses<span class="required-asterisk">*</span></div>
+              <div class="question-description">List all active medical licenses, including the state, license number, issue date, and expiration date. Format each entry on a new line.</div>
+              <textarea name="statesLicenseActive" placeholder="Example: California – A123456 – Issued: 2/1/2022 – Exp: 1/31/2028"></textarea>
+            </div>
+            <div class="question-block">
+              <div class="question-label">States License Details — Inactive/Expired Licenses<span class="required-asterisk">*</span></div>
+              <div class="question-description">List all inactive/expired medical licenses, including the state, license number, issue date, and expiration date. Format each entry on a new line.</div>
+              <textarea name="statesLicenseInactive" placeholder="Example: California – A123456 – Issued: 2/1/2020 – Exp: 1/31/2025"></textarea>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Compact State RN License<span class="required-asterisk">*</span></div>
+              <div class="question-description">Do you have a compact RN license?</div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="hasCompactRN" id="compactRNYes" value="Yes">
+                  <label for="compactRNYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="hasCompactRN" id="compactRNNo" value="No">
+                  <label for="compactRNNo">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional: Compact RN -->
+        <div class="section-card conditional-section" id="compactRNSection">
+          <div class="section-header">If Yes: Compact RN License</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">List all active Compact RN licenses<span class="required-asterisk">*</span></div>
+              <textarea name="compactRNLicenses" placeholder="Example: Florida – A123456 – Issued: 2/1/2022 – Exp: 1/31/2028"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 7: Board Certifications & CSR -->
+      <div class="form-page clinical-only" data-page="7">
+        <div class="section-card">
+          <div class="section-header">Board Certification(s)</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Do you have a Board Certificate?</div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="hasBoardCert" id="boardCertYes" value="Yes">
+                  <label for="boardCertYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="hasBoardCert" id="boardCertNo" value="No">
+                  <label for="boardCertNo">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional: Board Certifications -->
+        <div class="section-card conditional-section" id="boardCertSection">
+          <div class="section-header">If Yes: Board Certifications</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">List all active board certifications<span class="required-asterisk">*</span></div>
+              <div class="question-description">Format: Specialty - Certifying organization - Issued Date – Expiration date.</div>
+              <textarea name="boardCertificationsList" placeholder="Example: Family Nurse Practitioner – AANP 123456 – Issued: 2/1/2022 – Exp: 1/31/2028"></textarea>
+            </div>
+            <div class="question-block">
+              <div class="question-label">Board Certifications — Upload<span class="required-asterisk">*</span></div>
+              <div class="question-description">Upload copy of each certificate listed above</div>
+              <div class="file-upload">
+                <div class="file-upload-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                  Add file
+                </div>
+                <input type="file" name="boardCertificationsUpload" multiple>
+                <div class="file-name" id="boardCertFile"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">Profile Continued</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">CSR (Controlled Substance Registration)<span class="required-asterisk">*</span></div>
+              <div class="question-description">List all CSR per state. Format each entry on a new line. If you are an RN, enter NA.</div>
+              <textarea name="csrDetails" placeholder="Format: UT CSR – Issued Date – Expiration Date"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">Supporting Documents NP/RN</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Are you either a NP or RN?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="isNPorRN" id="npRnYes" value="Yes">
+                  <label for="npRnYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="isNPorRN" id="npRnNo" value="No">
+                  <label for="npRnNo">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional: NP/RN Upload -->
+        <div class="section-card conditional-section" id="npRnUploadSection">
+          <div class="section-header">NP/RN – Continued</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Nursys Medical License Upload<span class="required-asterisk">*</span></div>
+              <div class="question-description">Upload a recent Nursys-Quick Confirm-License-Verification-report pulled within the last 30 days.</div>
+              <div class="file-upload">
+                <div class="file-upload-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                  Add file
+                </div>
+                <input type="file" name="nursysUpload">
+                <div class="file-name" id="nursysFile"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 8: Education & Work History -->
+      <div class="form-page clinical-only" data-page="8">
+        <div class="section-card">
+          <div class="section-header">Education & Training</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Middle School<span class="required-asterisk">*</span></div>
+              <textarea name="middleSchool" placeholder="Format: School (City, State) / Program Name (Month & Year Attended) Completed: Month & Year"></textarea>
+            </div>
+            <div class="question-block">
+              <div class="question-label">High School<span class="required-asterisk">*</span></div>
+              <textarea name="highSchool" placeholder="Format: School (City, State) / Program Name (Month & Year Attended) Completed: Month & Year"></textarea>
+            </div>
+            <div class="question-block">
+              <div class="question-label">All Undergraduate & Graduate Program(s)<span class="required-asterisk">*</span></div>
+              <div class="question-description">Format: Undergraduate: School (City, State) / BS Program Name (Month & Year Attended) Completed: Month & Year</div>
+              <textarea name="undergraduateGraduate" placeholder="Format: Graduate: School (City, State) / MS Program Name (Month & Year Attended) Completed: Month & Year"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">MD or DO</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Are you an MD or DO?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="isMDorDO" id="mdDoYes" value="Yes">
+                  <label for="mdDoYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="isMDorDO" id="mdDoNo" value="No">
+                  <label for="mdDoNo">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional: MD/DO Education -->
+        <div class="section-card conditional-section" id="mdDoEducationSection">
+          <div class="section-header">MD/DO – Education</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Medical School Program<span class="required-asterisk">*</span></div>
+              <div class="question-description">Format: School (City, State) / Program Name (Month & Year Attended) Completed: Month & Year</div>
+              <textarea name="medicalSchoolProgram"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional: Internship/Residency/Fellowship -->
+        <div class="section-card conditional-section" id="internshipSection">
+          <div class="section-header">Internship / Residency / Fellowship (MD or DO providers only)</div>
+          <div class="section-description">List all programs in chronological order. Any gaps of 30 days or more must be explained.</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Please list all internships, residencies, and fellowships in chronological order<span class="required-asterisk">*</span></div>
+              <input type="text" name="internshipsResidencies">
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">Work History Entry</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Employer / Practice Name<span class="required-asterisk">*</span></div>
+              <input type="text" name="employerName">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Contact Name (Supervisor or HR)<span class="required-asterisk">*</span></div>
+              <input type="text" name="supervisorContact">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Contact Phone Number<span class="required-asterisk">*</span></div>
+              <input type="tel" name="supervisorPhone">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Dates of Employment (From–To)<span class="required-asterisk">*</span></div>
+              <div class="question-description">Example: 01/2020 to 07/2023</div>
+              <input type="text" name="employmentDates">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Reason for Leaving</div>
+              <textarea name="reasonForLeaving"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 9: Legal & Health Questions -->
+      <div class="form-page clinical-only" data-page="9">
+        <div class="section-card">
+          <div class="section-header">License, Legal, or Disciplinary History</div>
+          <div class="section-description">Please answer Yes or No to each question. If you answer Yes, provide a brief explanation.</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Have you ever been convicted of, pled guilty or nolo contendere to a crime (felony or misdemeanor) in any jurisdiction?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="convictedCrime" id="convictedYes" value="Yes">
+                  <label for="convictedYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="convictedCrime" id="convictedNo" value="No">
+                  <label for="convictedNo">No</label>
+                </div>
+              </div>
+              <div class="conditional-section" id="convictedExplainSection">
+                <div style="margin-top: 12px;">
+                  <div class="question-label">If Yes, please explain</div>
+                  <textarea name="convictedExplanation"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-block">
+              <div class="question-label">Do you currently have any disciplinary actions, investigations, or pending complaints against any health care license in any jurisdiction?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="disciplinaryActions" id="disciplinaryYes" value="Yes">
+                  <label for="disciplinaryYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="disciplinaryActions" id="disciplinaryNo" value="No">
+                  <label for="disciplinaryNo">No</label>
+                </div>
+              </div>
+              <div class="conditional-section" id="disciplinaryExplainSection">
+                <div style="margin-top: 12px;">
+                  <div class="question-label">If Yes, please explain</div>
+                  <textarea name="disciplinaryExplanation"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-block">
+              <div class="question-label">Have you ever had a license revoked, suspended, or otherwise acted against in another state or country?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="licenseRevoked" id="revokedYes" value="Yes">
+                  <label for="revokedYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="licenseRevoked" id="revokedNo" value="No">
+                  <label for="revokedNo">No</label>
+                </div>
+              </div>
+              <div class="conditional-section" id="revokedExplainSection">
+                <div style="margin-top: 12px;">
+                  <div class="question-label">If Yes, please explain</div>
+                  <textarea name="revokedExplanation"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-block">
+              <div class="question-label">Are you currently under investigation in any jurisdiction?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="underInvestigation" id="investigationYes" value="Yes">
+                  <label for="investigationYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="underInvestigation" id="investigationNo" value="No">
+                  <label for="investigationNo">No</label>
+                </div>
+              </div>
+              <div class="conditional-section" id="investigationExplainSection">
+                <div style="margin-top: 12px;">
+                  <div class="question-label">If Yes, please explain</div>
+                  <textarea name="investigationExplanation"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">Health Questions</div>
+          <div class="section-description">Please answer Yes or No to each question. If you answer Yes, provide a brief explanation.</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Do you have any medical condition(s) that could impair your ability to practice safely?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="medicalCondition" id="medCondYes" value="Yes">
+                  <label for="medCondYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="medicalCondition" id="medCondNo" value="No">
+                  <label for="medCondNo">No</label>
+                </div>
+              </div>
+              <div class="conditional-section" id="medCondExplainSection">
+                <div style="margin-top: 12px;">
+                  <div class="question-label">If Yes, please explain</div>
+                  <textarea name="medicalConditionExplanation"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-block">
+              <div class="question-label">Do you use any substances that impair your ability to practice safely?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="substanceUse" id="substanceYes" value="Yes">
+                  <label for="substanceYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="substanceUse" id="substanceNo" value="No">
+                  <label for="substanceNo">No</label>
+                </div>
+              </div>
+              <div class="conditional-section" id="substanceExplainSection">
+                <div style="margin-top: 12px;">
+                  <div class="question-label">If Yes, please explain</div>
+                  <textarea name="substanceExplanation"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-block">
+              <div class="question-label">Have you been treated for or diagnosed with a substance use disorder in the past 5 years?<span class="required-asterisk">*</span></div>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="substanceDisorder" id="disorderYes" value="Yes">
+                  <label for="disorderYes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="substanceDisorder" id="disorderNo" value="No">
+                  <label for="disorderNo">No</label>
+                </div>
+              </div>
+              <div class="conditional-section" id="disorderExplainSection">
+                <div style="margin-top: 12px;">
+                  <div class="question-label">If Yes, please explain</div>
+                  <textarea name="disorderExplanation"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-block">
+              <div class="question-label">Health Questions — Documentation</div>
+              <div class="question-description">If any of the three health questions above are answered Yes, upload documentation with the release/clearance date.</div>
+              <div class="file-upload">
+                <div class="file-upload-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                  Add file
+                </div>
+                <input type="file" name="healthDocumentation">
+                <div class="file-name" id="healthDocFile"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 10: Professional References & Final Signature -->
+      <div class="form-page clinical-only" data-page="10">
+        <div class="section-card">
+          <div class="section-header">Professional Reference</div>
+          <div class="section-description">Please provide the following information for three professional references: Format: Name, Title/Specialty, Phone, Email, and Known From–To (MM/YY)</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">1.) Professional Reference<span class="required-asterisk">*</span></div>
+              <div class="question-description">Example: Dr. Jane Smith – Medical Director – (123) 456-7890 – jane.smith@email.com – 01/2020 to 07/2023</div>
+              <input type="text" name="reference1">
+            </div>
+            <div class="question-block">
+              <div class="question-label">2.) Professional Reference<span class="required-asterisk">*</span></div>
+              <input type="text" name="reference2">
+            </div>
+            <div class="question-block">
+              <div class="question-label">3.) Professional Reference<span class="required-asterisk">*</span></div>
+              <input type="text" name="reference3">
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">Certification / Signature</div>
+          <div class="section-description">By submitting this form, I certify that the information provided above is accurate, complete, and truthful to the best of my knowledge.</div>
+          <div class="section-content">
+            <div class="question-block">
+              <div class="question-label">Printed Name<span class="required-asterisk">*</span></div>
+              <input type="text" name="printedNameClinical">
+            </div>
+            <div class="question-block">
+              <div class="question-label">Date<span class="required-asterisk">*</span></div>
+              <input type="date" name="signatureDateClinical">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="nav-container">
+        <a class="clear-form" onclick="clearForm()">Clear form</a>
+        <div style="display: flex; gap: 12px;">
+          <button type="button" class="nav-btn nav-btn-secondary" id="backBtn" onclick="navigatePage(-1)" disabled>Back</button>
+          <button type="button" class="nav-btn nav-btn-primary" id="nextBtn" onclick="navigatePage(1)">Next</button>
+          <button type="submit" class="submit-btn" id="submitBtn" style="display: none;">Submit</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Footer -->
+    <div class="form-footer">
+      <p>Never submit passwords through Google Forms.</p>
+      <p style="margin-top: 8px;">This form was created inside of <a href="#">Fountain Vitality</a>.</p>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentPage = 1;
+    let isClinicalStaff = false;
+    const totalPagesNonClinical = 4;
+    const totalPagesClinical = 10;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      setupConditionalFields();
+      setupFileInputs();
+      updateNavigation();
+    });
+
+    // Setup conditional fields
+    function setupConditionalFields() {
+      // Other Names
+      document.querySelectorAll('input[name="anyOtherNames"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          toggleSection('otherNamesSection', this.value === 'Yes');
+        });
+      });
+
+      // Languages
+      document.querySelectorAll('input[name="speaksOtherLanguages"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          toggleSection('languagesSection', this.value === 'Yes');
+        });
+      });
+
+      // Clinical Staff
+      document.querySelectorAll('input[name="isClinicalStaff"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          isClinicalStaff = this.value === 'Yes';
+          toggleSection('nonClinicalSignatureSection', this.value === 'No');
+          updateNavigation();
+        });
+      });
+
+      // Compact RN License
+      document.querySelectorAll('input[name="hasCompactRN"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          toggleSection('compactRNSection', this.value === 'Yes');
+        });
+      });
+
+      // Board Certificate
+      document.querySelectorAll('input[name="hasBoardCert"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          toggleSection('boardCertSection', this.value === 'Yes');
+        });
+      });
+
+      // NP or RN
+      document.querySelectorAll('input[name="isNPorRN"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          toggleSection('npRnUploadSection', this.value === 'Yes');
+        });
+      });
+
+      // MD or DO
+      document.querySelectorAll('input[name="isMDorDO"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          const isYes = this.value === 'Yes';
+          toggleSection('mdDoEducationSection', isYes);
+          toggleSection('internshipSection', isYes);
+        });
+      });
+
+      // Legal/Health explanation fields
+      const explanationMappings = [
+        { radio: 'convictedCrime', section: 'convictedExplainSection' },
+        { radio: 'disciplinaryActions', section: 'disciplinaryExplainSection' },
+        { radio: 'licenseRevoked', section: 'revokedExplainSection' },
+        { radio: 'underInvestigation', section: 'investigationExplainSection' },
+        { radio: 'medicalCondition', section: 'medCondExplainSection' },
+        { radio: 'substanceUse', section: 'substanceExplainSection' },
+        { radio: 'substanceDisorder', section: 'disorderExplainSection' }
+      ];
+
+      explanationMappings.forEach(mapping => {
+        document.querySelectorAll(`input[name="${mapping.radio}"]`).forEach(radio => {
+          radio.addEventListener('change', function() {
+            toggleSection(mapping.section, this.value === 'Yes');
+          });
+        });
+      });
+    }
+
+    // Toggle section visibility
+    function toggleSection(sectionId, show) {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.toggle('visible', show);
+      }
+    }
+
+    // Setup file inputs
+    function setupFileInputs() {
+      document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function() {
+          const fileNameDiv = this.parentElement.querySelector('.file-name');
+          if (fileNameDiv && this.files.length > 0) {
+            const fileNames = Array.from(this.files).map(f => f.name).join(', ');
+            fileNameDiv.textContent = fileNames;
+          }
+        });
+      });
+    }
+
+    // Navigate between pages
+    function navigatePage(direction) {
+      const pages = getVisiblePages();
+      const currentIndex = pages.indexOf(currentPage);
+      const newIndex = currentIndex + direction;
+
+      if (newIndex >= 0 && newIndex < pages.length) {
+        // Hide current page
+        document.querySelector(`.form-page[data-page="${currentPage}"]`).classList.remove('active');
+
+        // Show new page
+        currentPage = pages[newIndex];
+        document.querySelector(`.form-page[data-page="${currentPage}"]`).classList.add('active');
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        updateNavigation();
+      }
+    }
+
+    // Get visible pages based on clinical status
+    function getVisiblePages() {
+      if (isClinicalStaff) {
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      } else {
+        return [1, 2, 3, 4];
+      }
+    }
+
+    // Update navigation buttons and progress
+    function updateNavigation() {
+      const pages = getVisiblePages();
+      const currentIndex = pages.indexOf(currentPage);
+      const totalPages = pages.length;
+
+      // Update buttons
+      document.getElementById('backBtn').disabled = currentIndex === 0;
+
+      const isLastPage = currentIndex === totalPages - 1;
+      document.getElementById('nextBtn').style.display = isLastPage ? 'none' : 'block';
+      document.getElementById('submitBtn').style.display = isLastPage ? 'block' : 'none';
+
+      // Update progress
+      const progress = Math.round(((currentIndex + 1) / totalPages) * 100);
+      document.getElementById('pageIndicator').textContent = `Page ${currentIndex + 1} of ${totalPages}`;
+      document.getElementById('percentComplete').textContent = `${progress}% complete`;
+      document.getElementById('progressFill').style.width = `${progress}%`;
+    }
+
+    // Clear form
+    function clearForm() {
+      if (confirm('Are you sure you want to clear all responses?')) {
+        document.getElementById('onboardingForm').reset();
+
+        // Hide all conditional sections
+        document.querySelectorAll('.conditional-section').forEach(section => {
+          section.classList.remove('visible');
+        });
+
+        // Clear file names
+        document.querySelectorAll('.file-name').forEach(el => {
+          el.textContent = '';
+        });
+
+        // Reset to first page
+        document.querySelectorAll('.form-page').forEach(page => {
+          page.classList.remove('active');
+        });
+        document.querySelector('.form-page[data-page="1"]').classList.add('active');
+        currentPage = 1;
+        isClinicalStaff = false;
+        updateNavigation();
+      }
+    }
+
+    // Form submission
+    document.getElementById('onboardingForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Collect form data
+      const formData = new FormData(this);
+      const data = {};
+
+      for (let [key, value] of formData.entries()) {
+        if (data[key]) {
+          if (Array.isArray(data[key])) {
+            data[key].push(value);
+          } else {
+            data[key] = [data[key], value];
+          }
+        } else {
+          data[key] = value;
+        }
+      }
+
+      console.log('Form Data:', data);
+      alert('Form submitted successfully! Check the console for data.');
+
+      // Here you would typically send data to your server
+      // fetch('/api/submit', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(data)
+      // });
+    });
+  </script>
+</body>
+</html>
