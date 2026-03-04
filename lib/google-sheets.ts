@@ -25,7 +25,7 @@ export async function appendToSheet(values: string[]): Promise<boolean> {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Sheet1!A:Z', // Adjust range as needed
+      range: 'Form Responses 1!A:Z',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [values],
@@ -51,7 +51,7 @@ export async function getSheetHeaders(): Promise<string[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Sheet1!1:1',
+      range: 'Form Responses 1!1:1',
     });
 
     return (response.data.values?.[0] as string[]) || [];
@@ -77,7 +77,7 @@ export async function initializeSheet(headers: string[]): Promise<void> {
     if (existingHeaders.length === 0) {
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'Sheet1!A1',
+        range: 'Form Responses 1!A1',
         valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: [headers],
