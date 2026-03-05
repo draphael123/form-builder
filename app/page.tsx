@@ -110,6 +110,31 @@ export default function FormPage() {
   const isLastPage = currentPage === totalPages - 1;
   const isFirstPage = currentPage === 0;
 
+  // Calculate total visible questions and current question range
+  const questionCounts = useMemo(() => {
+    let totalQuestions = 0;
+    let questionsBeforeCurrentPage = 0;
+    let questionsOnCurrentPage = 0;
+
+    visibleSections.forEach((section, index) => {
+      const visibleQuestionsInSection = section.questions.filter((q) => shouldShowQuestion(q)).length;
+      totalQuestions += visibleQuestionsInSection;
+
+      if (index < currentPage) {
+        questionsBeforeCurrentPage += visibleQuestionsInSection;
+      } else if (index === currentPage) {
+        questionsOnCurrentPage = visibleQuestionsInSection;
+      }
+    });
+
+    return {
+      total: totalQuestions,
+      startOfCurrentPage: questionsBeforeCurrentPage + 1,
+      endOfCurrentPage: questionsBeforeCurrentPage + questionsOnCurrentPage,
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleSections, currentPage, watchedValues]);
+
   // Render a question based on its type
   const renderQuestion = (question: Question) => {
     if (!shouldShowQuestion(question)) return null;
@@ -272,9 +297,16 @@ export default function FormPage() {
         {/* Progress Indicator */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Page {currentPage + 1} of {totalPages}
-            </span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+              <span className="text-sm font-medium text-gray-700">
+                Section {currentPage + 1} of {totalPages}
+              </span>
+              <span className="text-sm text-gray-500">
+                {questionCounts.startOfCurrentPage === questionCounts.endOfCurrentPage
+                  ? `Question ${questionCounts.startOfCurrentPage}`
+                  : `Questions ${questionCounts.startOfCurrentPage}–${questionCounts.endOfCurrentPage}`} of {questionCounts.total}
+              </span>
+            </div>
             <div className="flex items-center gap-4">
               {lastSavedText && (
                 <span className="text-xs text-green-600 flex items-center gap-1">
@@ -289,14 +321,14 @@ export default function FormPage() {
                 </span>
               )}
               <span className="text-sm text-gray-500">
-                {Math.round(((currentPage + 1) / totalPages) * 100)}% complete
+                {Math.round((questionCounts.endOfCurrentPage / questionCounts.total) * 100)}% complete
               </span>
             </div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentPage + 1) / totalPages) * 100}%` }}
+              style={{ width: `${(questionCounts.endOfCurrentPage / questionCounts.total) * 100}%` }}
             />
           </div>
         </div>
