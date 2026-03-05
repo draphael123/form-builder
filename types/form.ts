@@ -12,6 +12,9 @@ export type QuestionType =
   | 'checkbox-grid'
   | 'file-upload';
 
+// Validation types for fields
+export type ValidationType = 'email' | 'ssn' | 'phone' | 'birthDate' | 'signatureDate' | 'pastDate';
+
 // Base question interface
 export interface BaseQuestion {
   id: string;
@@ -34,6 +37,7 @@ export interface TextQuestion extends BaseQuestion {
   placeholder?: string;
   minLength?: number;
   maxLength?: number;
+  validationType?: ValidationType;
 }
 
 export interface ChoiceOption {
@@ -64,6 +68,7 @@ export interface DateQuestion extends BaseQuestion {
   type: 'date';
   minDate?: string;
   maxDate?: string;
+  validationType?: 'birthDate' | 'signatureDate' | 'pastDate';
 }
 
 export interface TimeQuestion extends BaseQuestion {

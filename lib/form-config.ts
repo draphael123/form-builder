@@ -16,6 +16,7 @@ export const newHireFormConfig: FormConfig = {
           type: 'short-text',
           label: 'Email Address',
           required: true,
+          validationType: 'email',
         },
         {
           id: 'fullLegalName',
@@ -40,6 +41,7 @@ export const newHireFormConfig: FormConfig = {
           label: 'Date of Birth',
           description: 'Example: January 7, 2019',
           required: true,
+          validationType: 'birthDate',
         },
         {
           id: 'placeOfBirth',
@@ -66,6 +68,7 @@ export const newHireFormConfig: FormConfig = {
           label: 'Social Security Number',
           description: 'Format: ###-##-####',
           required: true,
+          validationType: 'ssn',
         },
         {
           id: 'citizenshipStatus',
@@ -117,12 +120,14 @@ export const newHireFormConfig: FormConfig = {
           label: 'Preferred Phone Number',
           description: 'Format: ###-###-####',
           required: true,
+          validationType: 'phone',
         },
         {
           id: 'personalEmailAddress',
           type: 'short-text',
           label: 'Personal Email Address',
           required: true,
+          validationType: 'email',
         },
         {
           id: 'emergencyContactName',
@@ -135,6 +140,7 @@ export const newHireFormConfig: FormConfig = {
           type: 'short-text',
           label: 'Emergency Contact Number',
           required: true,
+          validationType: 'phone',
         },
         {
           id: 'driversLicenseGovernmentId',
@@ -214,6 +220,7 @@ export const newHireFormConfig: FormConfig = {
           label: 'Date',
           description: 'Example: January 7, 2019',
           required: true,
+          validationType: 'signatureDate',
           showWhen: {
             field: 'isClinicalStaff',
             equals: 'No',
@@ -488,6 +495,17 @@ export const newHireFormConfig: FormConfig = {
             equals: 'Yes',
           },
         },
+        {
+          id: 'npdbReport',
+          type: 'file-upload',
+          label: 'NPDB Self-Query Report',
+          description: 'Upload your National Practitioner Data Bank (NPDB) Self-Query Report. The report must be dated within the last 90 days.',
+          required: true,
+          showWhen: {
+            field: 'typeOfProvider',
+            equals: ['NP', 'MD', 'DO'],
+          },
+        },
       ],
     },
     {
@@ -578,6 +596,7 @@ export const newHireFormConfig: FormConfig = {
           type: 'short-text',
           label: 'Contact Phone Number',
           required: true,
+          validationType: 'phone',
           showWhen: {
             field: 'isClinicalStaff',
             equals: 'Yes',
@@ -964,6 +983,7 @@ export const newHireFormConfig: FormConfig = {
           label: 'Date',
           description: 'Example: January 7, 2019',
           required: true,
+          validationType: 'signatureDate',
           showWhen: {
             field: 'isClinicalStaff',
             equals: 'Yes',

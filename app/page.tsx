@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { newHireFormConfig } from '@/lib/form-config';
 import { Question, FormSection as FormSectionType } from '@/types/form';
 import {
@@ -17,23 +17,68 @@ import {
   Grid,
   FileUpload,
 } from '@/components/form';
+import { useFormAutoSave } from '@/hooks/useFormAutoSave';
 
 export default function FormPage() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset,
     trigger,
     formState: { errors },
   } = useForm<Record<string, unknown>>();
 
   const watchedValues = watch();
+
+  // Auto-save hook
+  const {
+    hasDraft,
+    lastSavedText,
+    restoreDraft,
+    clearDraft,
+  } = useFormAutoSave({
+    formId: 'new-hire-form',
+    watch,
+    reset,
+    onRestore: (data) => {
+      // Trigger validation on restored fields
+      Object.keys(data).forEach((key) => {
+        if (data[key]) {
+          trigger(key);
+        }
+      });
+    },
+  });
+
+  // Show draft banner on initial load if draft exists
+  useEffect(() => {
+    if (hasDraft) {
+      setShowDraftBanner(true);
+    }
+  }, [hasDraft]);
+
+  // Handle restoring draft
+  const handleRestoreDraft = () => {
+    const restored = restoreDraft();
+    if (restored?.currentPage !== undefined) {
+      setCurrentPage(restored.currentPage);
+    }
+    setShowDraftBanner(false);
+  };
+
+  // Handle dismissing draft
+  const handleDismissDraft = () => {
+    clearDraft();
+    setShowDraftBanner(false);
+  };
 
   // Check if a question should be shown based on conditional logic
   const shouldShowQuestion = (question: Question): boolean => {
@@ -57,6 +102,7 @@ export default function FormPage() {
   // Get visible sections only
   const visibleSections = useMemo(() => {
     return newHireFormConfig.sections.filter((section) => shouldShowSection(section));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedValues]);
 
   const totalPages = visibleSections.length;
@@ -146,6 +192,8 @@ export default function FormPage() {
       const result = await response.json();
 
       if (result.success) {
+        // Clear draft on successful submission
+        clearDraft();
         router.push('/success');
       } else {
         setSubmitError(result.message || 'Failed to submit form. Please try again.');
@@ -161,6 +209,51 @@ export default function FormPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
+        {/* Draft Restore Banner */}
+        {showDraftBanner && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <svg
+                className="w-5 h-5 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-blue-800">
+                  You have a saved draft
+                </p>
+                <p className="text-xs text-blue-600">
+                  Would you like to continue where you left off?
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleRestoreDraft}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Restore
+              </button>
+              <button
+                type="button"
+                onClick={handleDismissDraft}
+                className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-white border border-blue-300 rounded-md hover:bg-blue-50 transition-colors"
+              >
+                Start Fresh
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Form Header */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-4">
           <div className="border-t-8 border-blue-600" />
@@ -182,9 +275,23 @@ export default function FormPage() {
             <span className="text-sm font-medium text-gray-700">
               Page {currentPage + 1} of {totalPages}
             </span>
-            <span className="text-sm text-gray-500">
-              {Math.round(((currentPage + 1) / totalPages) * 100)}% complete
-            </span>
+            <div className="flex items-center gap-4">
+              {lastSavedText && (
+                <span className="text-xs text-green-600 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {lastSavedText}
+                </span>
+              )}
+              <span className="text-sm text-gray-500">
+                {Math.round(((currentPage + 1) / totalPages) * 100)}% complete
+              </span>
+            </div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div

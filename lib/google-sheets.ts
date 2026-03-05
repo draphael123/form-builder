@@ -23,9 +23,10 @@ export async function appendToSheet(values: string[]): Promise<boolean> {
       throw new Error('GOOGLE_SPREADSHEET_ID is not configured');
     }
 
+    // Use a wider range to accommodate all form fields (60+ columns)
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Form Responses 1!A:Z',
+      range: 'Form Responses 1!A:CZ',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [values],
