@@ -66,30 +66,32 @@ export async function POST(request: NextRequest) {
       const { saveFileLocally } = await import('@/lib/local-storage');
       const result = saveFileLocally(fileBase64, fileName, submitterName);
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          fileName: fileName,
-          fileUrl: result.publicUrl,
-          webViewLink: result.publicUrl,
-        },
-      });
+      if (result) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            fileName: fileName,
+            fileUrl: result.publicUrl,
+            webViewLink: result.publicUrl,
+          },
+        });
+      }
     } catch (error) {
-      console.error('Local storage failed, using data URL fallback:', error);
-
-      // Final fallback: return as data URL
-      const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${fileBase64}`;
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          fileName: fileName,
-          fileUrl: dataUrl,
-          webViewLink: dataUrl,
-          isDataUrl: true,
-        },
-      });
+      console.error('Local storage failed:', error);
     }
+
+    // Fallback: return as data URL
+    const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${fileBase64}`;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        fileName: fileName,
+        fileUrl: dataUrl,
+        webViewLink: dataUrl,
+        isDataUrl: true,
+      },
+    });
   } catch (error) {
     console.error('Error uploading file:', error);
     return NextResponse.json(
