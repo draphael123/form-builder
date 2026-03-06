@@ -131,42 +131,46 @@ function uploadFileToDrive(fileData) {
 function logToSpreadsheet(headers, row) {
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getActiveSheet();
 
-  // Check if headers exist and match
-  const lastRow = sheet.getLastRow();
-  if (lastRow === 0) {
-    // Empty sheet - add headers
-    sheet.appendRow(headers);
-  } else {
-    // Check if first row matches expected headers
-    const existingHeaders = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-    const headersMatch = headers.every(function(h, i) {
-      return existingHeaders[i] === h;
-    });
+  // VERTICAL FORMAT: Each field is a row
+  // Columns: Submission ID | Timestamp | Question | Answer
 
-    if (!headersMatch) {
-      // Update headers to match current form structure
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      Logger.log('Headers updated to match current form structure');
-    }
+  // Add column headers if sheet is empty
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Submission ID', 'Timestamp', 'Question', 'Answer']);
+    // Format header row
+    sheet.getRange(1, 1, 1, 4).setFontWeight('bold');
+    sheet.setFrozenRows(1);
   }
 
-  // Ensure row has same length as headers (pad with empty strings if needed)
-  while (row.length < headers.length) {
-    row.push('');
+  // Generate a unique submission ID
+  const submissionId = 'SUB-' + Utilities.formatDate(new Date(), 'America/New_York', 'yyyyMMdd-HHmmss');
+  const timestamp = row[0]; // First item is always timestamp
+
+  // Add each field as a separate row (skip timestamp since we have it in column B)
+  const rows = [];
+  for (var i = 1; i < headers.length; i++) {
+    var value = row[i] || '';
+
+    // Skip empty values to keep sheet cleaner
+    if (value === '') continue;
+
+    // Convert Google Drive URLs to clickable hyperlinks
+    if (typeof value === 'string' && value.includes('drive.google.com')) {
+      value = '=HYPERLINK("' + value + '", "📎 Click to View")';
+    }
+
+    rows.push([submissionId, timestamp, headers[i], value]);
   }
 
-  // Convert Google Drive URLs to clickable hyperlinks
-  const processedRow = row.map(function(cell, index) {
-    if (typeof cell === 'string' && cell.includes('drive.google.com')) {
-      // Use header name as link text, or "View File" as fallback
-      const linkText = headers[index] ? headers[index].substring(0, 30) : 'View File';
-      return '=HYPERLINK("' + cell + '", "📎 ' + linkText + '")';
-    }
-    return cell;
-  });
+  // Append all rows at once (more efficient)
+  if (rows.length > 0) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 4).setValues(rows);
+  }
 
-  // Append the data row
-  sheet.appendRow(processedRow);
+  // Add a blank row to separate submissions
+  sheet.appendRow(['---', '---', '---', '---']);
+
+  Logger.log('Submission ' + submissionId + ' logged with ' + rows.length + ' fields');
 }
 
 // ===========================================
