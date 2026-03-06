@@ -12,13 +12,6 @@ export const newHireFormConfig: FormConfig = {
       description: 'Demographic / Personal Information',
       questions: [
         {
-          id: 'email',
-          type: 'short-text',
-          label: 'Email Address',
-          required: true,
-          validationType: 'email',
-        },
-        {
           id: 'fullLegalName',
           type: 'short-text',
           label: 'Full Legal Name (First, Middle, Last, Suffix)',

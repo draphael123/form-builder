@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     try {
       const { sendSubmissionEmails } = await import('@/lib/email');
       await sendSubmissionEmails({
-        submitterEmail: formData.email || formData.personalEmailAddress || '',
+        submitterEmail: formData.personalEmailAddress || '',
         submitterName: formData.fullLegalName || 'New Hire',
         submissionId: submission.id,
         submittedAt: new Date(submission.timestamp).toLocaleString(),
