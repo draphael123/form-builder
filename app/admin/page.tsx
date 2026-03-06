@@ -201,6 +201,18 @@ export default function AdminPage() {
               >
                 View Form
               </Link>
+              <a
+                href="https://docs.google.com/spreadsheets/d/1etgBQL9BjxFVVN4JYHN9a_6IfQr41gj8aDMrt6gpT_Y"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 inline-flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                  <path d="M7 7h2v2H7zm0 4h2v2H7zm0 4h2v2H7zm4-8h6v2h-6zm0 4h6v2h-6zm0 4h6v2h-6z"/>
+                </svg>
+                Google Sheet
+              </a>
               <Link
                 href="/admin/analytics"
                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
