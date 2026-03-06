@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Optional: send to Google Sheet via Apps Script web app (no Google Cloud setup)
+    // Send to Apps Script for Google Sheets logging AND email notifications
     const appsScriptUrl = process.env.APPS_SCRIPT_WEB_APP_URL;
     if (appsScriptUrl) {
       try {
@@ -80,43 +80,27 @@ export async function POST(request: NextRequest) {
           if (typeof value === 'object') return JSON.stringify(value);
           return String(value);
         });
+
+        // Send both spreadsheet data and email data to Apps Script
         await fetch(appsScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ headers, row: rowValues }),
+          body: JSON.stringify({
+            headers,
+            row: rowValues,
+            emailData: {
+              submitterEmail: formData.personalEmailAddress || '',
+              submitterName: formData.fullLegalName || 'New Hire',
+              submissionId: submission.id,
+              submittedAt: new Date(submission.timestamp).toLocaleString(),
+              isClinicalStaff: formData.isClinicalStaff === 'Yes',
+            },
+          }),
         });
-        console.log('Submission also sent to Apps Script sheet');
+        console.log('Submission sent to Apps Script (spreadsheet + emails)');
       } catch (error) {
         console.error('Failed to send to Apps Script (continuing):', error);
       }
-    }
-
-    // Generate PDF for email attachment
-    let pdfBuffer: Buffer | undefined;
-    let pdfFilename: string | undefined;
-    try {
-      const { generateSubmissionPDF, generatePDFFilename } = await import('@/lib/pdf-generator');
-      pdfBuffer = await generateSubmissionPDF(submission);
-      pdfFilename = generatePDFFilename(submission);
-      console.log('PDF generated for email attachment');
-    } catch (error) {
-      console.error('Failed to generate PDF for email (continuing without attachment):', error);
-    }
-
-    // Send email notifications (confirmation to submitter + HR notification)
-    try {
-      const { sendSubmissionEmails } = await import('@/lib/email');
-      await sendSubmissionEmails({
-        submitterEmail: formData.personalEmailAddress || '',
-        submitterName: formData.fullLegalName || 'New Hire',
-        submissionId: submission.id,
-        submittedAt: new Date(submission.timestamp).toLocaleString(),
-        isClinicalStaff: formData.isClinicalStaff === 'Yes',
-        pdfBuffer,
-        pdfFilename,
-      });
-    } catch (error) {
-      console.error('Failed to send email notifications (continuing):', error);
     }
 
     return NextResponse.json({
