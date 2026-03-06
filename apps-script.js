@@ -13,15 +13,31 @@
 // 8. Click Deploy, authorize when prompted
 // 9. Copy the URL and add to Vercel as APPS_SCRIPT_WEB_APP_URL
 //
+// FILE UPLOAD SETUP:
+// 1. Create a Google Drive folder called "Fountain Onboarding Uploads"
+// 2. Copy the folder ID from the URL (the long string after /folders/)
+// 3. Update UPLOADS_FOLDER_ID below with your folder ID
+//
 // ===========================================
 
 const SPREADSHEET_ID = '1etgBQL9BjxFVVN4JYHN9a_6IfQr41gj8aDMrt6gpT_Y';
 const HR_EMAILS = ['daniel@fountain.net', 'tammy.hale@fountain.net'];
 const APP_URL = 'https://form-builder-pied-two.vercel.app';
 
+// Create a folder in Google Drive and paste its ID here
+// To get folder ID: Open folder in Drive, copy ID from URL after /folders/
+const UPLOADS_FOLDER_ID = 'YOUR_FOLDER_ID_HERE'; // <-- UPDATE THIS
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
+
+    // Handle file upload
+    if (data.fileUpload) {
+      const result = uploadFileToDrive(data.fileUpload);
+      return ContentService.createTextOutput(JSON.stringify(result))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
     // Log to spreadsheet
     if (data.headers && data.row) {
@@ -41,10 +57,76 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
+    Logger.log('Error in doPost: ' + error.message);
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
+
+// ===========================================
+// FILE UPLOAD FUNCTIONS
+// ===========================================
+
+function uploadFileToDrive(fileData) {
+  try {
+    const { fileBase64, fileName, mimeType, submitterName } = fileData;
+
+    if (!fileBase64 || !fileName) {
+      return { success: false, error: 'Missing file data' };
+    }
+
+    // Get or create the uploads folder
+    let folder;
+    if (UPLOADS_FOLDER_ID && UPLOADS_FOLDER_ID !== 'YOUR_FOLDER_ID_HERE') {
+      folder = DriveApp.getFolderById(UPLOADS_FOLDER_ID);
+    } else {
+      // Fallback: create/get folder in root
+      const folders = DriveApp.getFoldersByName('Fountain Onboarding Uploads');
+      if (folders.hasNext()) {
+        folder = folders.next();
+      } else {
+        folder = DriveApp.createFolder('Fountain Onboarding Uploads');
+        Logger.log('Created uploads folder. ID: ' + folder.getId());
+      }
+    }
+
+    // Create unique filename
+    const timestamp = Utilities.formatDate(new Date(), 'America/New_York', 'yyyy-MM-dd_HH-mm-ss');
+    const sanitizedName = (submitterName || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+    const uniqueFileName = sanitizedName + '_' + timestamp + '_' + fileName;
+
+    // Decode base64 and create file
+    const decoded = Utilities.base64Decode(fileBase64);
+    const blob = Utilities.newBlob(decoded, mimeType || 'application/octet-stream', uniqueFileName);
+    const file = folder.createFile(blob);
+
+    // Make file viewable by anyone with link
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    const fileId = file.getId();
+    const webViewLink = 'https://drive.google.com/file/d/' + fileId + '/view';
+    const downloadLink = 'https://drive.google.com/uc?export=download&id=' + fileId;
+
+    Logger.log('File uploaded: ' + uniqueFileName + ' -> ' + webViewLink);
+
+    return {
+      success: true,
+      data: {
+        fileId: fileId,
+        fileName: uniqueFileName,
+        fileUrl: downloadLink,
+        webViewLink: webViewLink
+      }
+    };
+  } catch (error) {
+    Logger.log('Upload error: ' + error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+// ===========================================
+// SPREADSHEET FUNCTIONS
+// ===========================================
 
 function logToSpreadsheet(headers, row) {
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getActiveSheet();
@@ -57,6 +139,10 @@ function logToSpreadsheet(headers, row) {
   // Append the data row
   sheet.appendRow(row);
 }
+
+// ===========================================
+// EMAIL FUNCTIONS
+// ===========================================
 
 function sendEmails(emailData) {
   const { submitterEmail, submitterName, submissionId, submittedAt, isClinicalStaff } = emailData;
@@ -241,7 +327,11 @@ function sendReminderEmail(reminderData) {
   GmailApp.sendEmail(to, subject, '', { htmlBody: htmlBody });
 }
 
-// Test function - run this manually to verify emails work
+// ===========================================
+// TEST FUNCTIONS - Run manually to test
+// ===========================================
+
+// Test email sending
 function testEmail() {
   sendEmails({
     submitterEmail: 'daniel@fountain.net',
@@ -264,4 +354,40 @@ function testReminderEmail() {
     reminderNumber: 1
   });
   Logger.log('Test reminder email sent!');
+}
+
+// Test file upload (run this to verify Drive access works)
+function testFileUpload() {
+  // Create a simple test file
+  const testContent = 'This is a test file uploaded at ' + new Date().toISOString();
+  const base64Content = Utilities.base64Encode(testContent);
+
+  const result = uploadFileToDrive({
+    fileBase64: base64Content,
+    fileName: 'test-upload.txt',
+    mimeType: 'text/plain',
+    submitterName: 'Test User'
+  });
+
+  Logger.log('Upload result: ' + JSON.stringify(result));
+
+  if (result.success) {
+    Logger.log('SUCCESS! File uploaded to: ' + result.data.webViewLink);
+    Logger.log('Download link: ' + result.data.fileUrl);
+  } else {
+    Logger.log('FAILED: ' + result.error);
+  }
+}
+
+// Get the uploads folder ID (run this to find your folder ID)
+function getUploadsFolderInfo() {
+  const folders = DriveApp.getFoldersByName('Fountain Onboarding Uploads');
+  if (folders.hasNext()) {
+    const folder = folders.next();
+    Logger.log('Folder found!');
+    Logger.log('Folder ID: ' + folder.getId());
+    Logger.log('Folder URL: https://drive.google.com/drive/folders/' + folder.getId());
+  } else {
+    Logger.log('Folder not found. Run testFileUpload() to create it automatically.');
+  }
 }
