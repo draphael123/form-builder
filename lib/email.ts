@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-const HR_EMAIL = process.env.HR_NOTIFICATION_EMAIL;
+const HR_NOTIFICATION_EMAILS = ['daniel@fountain.net', 'tammy.hale@fountain.net'];
 
 interface SubmissionEmailData {
   submitterEmail: string;
@@ -95,15 +95,18 @@ export async function sendConfirmationEmail(data: SubmissionEmailData): Promise<
 
 // Send notification email to HR when a new submission is received
 export async function sendHRNotificationEmail(data: SubmissionEmailData): Promise<boolean> {
-  if (!resend || !HR_EMAIL) {
-    console.log('HR email not configured - skipping HR notification');
+  if (!resend) {
+    console.log('Email not configured - skipping HR notification');
     return false;
   }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://form-builder-pied-two.vercel.app';
+  const submissionLink = `${appUrl}/admin?highlight=${data.submissionId}`;
 
   try {
     await resend.emails.send({
       from: FROM_EMAIL,
-      to: HR_EMAIL,
+      to: HR_NOTIFICATION_EMAILS,
       subject: `New Hire Submission: ${data.submitterName}`,
       html: `
         <!DOCTYPE html>
@@ -141,18 +144,22 @@ export async function sendHRNotificationEmail(data: SubmissionEmailData): Promis
                 </p>
               </div>
 
-              <p>Please review the submission in the admin dashboard.</p>
+              <p>Click below to view this submission:</p>
 
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin" class="button">
-                View Submissions
+              <a href="${submissionLink}" class="button">
+                View Submission
               </a>
+
+              <p style="margin-top: 20px; font-size: 12px; color: #6b7280;">
+                Or copy this link: ${submissionLink}
+              </p>
             </div>
           </div>
         </body>
         </html>
       `,
     });
-    console.log('HR notification email sent to:', HR_EMAIL);
+    console.log('HR notification email sent to:', HR_NOTIFICATION_EMAILS.join(', '));
     return true;
   } catch (error) {
     console.error('Failed to send HR notification email:', error);
