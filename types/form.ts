@@ -23,6 +23,7 @@ export interface BaseQuestion {
   description?: string;
   required?: boolean;
   showWhen?: ConditionalLogic;
+  tooltip?: string;
 }
 
 // Conditional logic for showing/hiding questions

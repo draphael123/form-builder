@@ -16,6 +16,8 @@ interface UploadedFile {
   fileName: string;
   fileUrl: string;
   webViewLink: string;
+  previewUrl?: string;
+  fileType?: string;
 }
 
 export function FileUpload({ question, register, errors, watch, setValue }: FileUploadProps) {
@@ -49,6 +51,16 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
         reader.readAsDataURL(file);
       });
 
+      // Generate preview for images
+      let previewUrl: string | undefined;
+      if (file.type.startsWith('image/')) {
+        previewUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+      }
+
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,6 +79,8 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
           fileName: file.name,
           fileUrl: result.data.fileUrl,
           webViewLink: result.data.webViewLink,
+          previewUrl,
+          fileType: file.type,
         };
         setUploadedFile(uploaded);
         // Store the Google Drive URL in the form
@@ -196,22 +210,42 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
           </div>
         ) : uploadedFile ? (
           <div className="space-y-3">
-            <div className="mx-auto w-12 h-12 rounded-full bg-[var(--color-sage)]/10 flex items-center justify-center">
-              <svg
-                className="h-6 w-6 text-[var(--color-sage)]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
+            {/* File Preview */}
+            {uploadedFile.previewUrl ? (
+              <div className="mx-auto w-24 h-24 rounded-lg overflow-hidden border border-[var(--color-parchment)] shadow-sm">
+                <img
+                  src={uploadedFile.previewUrl}
+                  alt={uploadedFile.fileName}
+                  className="w-full h-full object-cover"
                 />
-              </svg>
-            </div>
-            <p className="font-medium text-[var(--color-charcoal)]">{uploadedFile.fileName}</p>
+              </div>
+            ) : uploadedFile.fileType === 'application/pdf' ? (
+              <div className="mx-auto w-16 h-20 rounded-lg bg-red-50 border border-red-200 flex flex-col items-center justify-center">
+                <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8.5 13a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0v-1h.5a1.5 1.5 0 0 0 0-3H8.5zm.5 1.5h-.5v-1h.5a.5.5 0 0 1 0 1zm3-1.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h1a1.5 1.5 0 0 0 0-3h-1zm.5 2.5v-1.5h.5a.5.5 0 0 1 0 1.5h-.5zm3.5-2.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0v-1h1a.5.5 0 0 0 0-1h-1v-.5h1a.5.5 0 0 0 0-1h-1.5z"/>
+                </svg>
+                <span className="text-[10px] font-medium text-red-600 mt-1">PDF</span>
+              </div>
+            ) : (
+              <div className="mx-auto w-12 h-12 rounded-full bg-[var(--color-sage)]/10 flex items-center justify-center">
+                <svg
+                  className="h-6 w-6 text-[var(--color-sage)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+            )}
+            <p className="font-medium text-[var(--color-charcoal)] text-sm truncate max-w-[200px] mx-auto">
+              {uploadedFile.fileName}
+            </p>
             <div className="flex items-center justify-center gap-4">
               <a
                 href={uploadedFile.webViewLink}

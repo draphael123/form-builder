@@ -3,7 +3,7 @@
 import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { TextQuestion } from '@/types/form';
 import { getValidationRules, formatSSN, formatPhone } from '@/lib/validations';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 interface TextFieldProps {
   question: TextQuestion;
@@ -11,12 +11,18 @@ interface TextFieldProps {
   errors: FieldErrors;
   setValue?: UseFormSetValue<Record<string, unknown>>;
   watch?: UseFormWatch<Record<string, unknown>>;
+  onBlur?: () => void;
 }
 
-export function TextField({ question, register, errors, setValue, watch }: TextFieldProps) {
+export function TextField({ question, register, errors, setValue, watch, onBlur }: TextFieldProps) {
   const error = errors[question.id];
   const isLongText = question.type === 'long-text';
   const validationType = question.validationType;
+  const [showSSN, setShowSSN] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  // Watch the current value for SSN masking
+  const currentValue = watch ? watch(question.id) as string : '';
 
   // Get validation rules based on type
   const validationRules = getValidationRules(validationType);
@@ -84,19 +90,105 @@ export function TextField({ question, register, errors, setValue, watch }: TextF
       }}
     : commonProps;
 
+  // Get tooltip content based on field type
+  const getTooltip = () => {
+    if (question.tooltip) return question.tooltip;
+    switch (validationType) {
+      case 'ssn':
+        return 'Your Social Security Number is encrypted and securely stored. It will only be used for employment verification purposes.';
+      case 'phone':
+        return 'Please enter a valid 10-digit US phone number.';
+      case 'email':
+        return 'We\'ll use this email to send you important updates about your application.';
+      default:
+        return null;
+    }
+  };
+
+  const tooltip = getTooltip();
+
+  // Mask SSN display when not focused
+  const getMaskedValue = () => {
+    if (validationType !== 'ssn' || !currentValue || showSSN) return undefined;
+    const formatted = formatSSN(currentValue);
+    if (formatted.length < 7) return undefined;
+    return `•••-••-${formatted.slice(-4)}`;
+  };
+
+  const maskedValue = getMaskedValue();
+
   return (
     <div className="space-y-2">
-      <label htmlFor={question.id} className="question-label block">
-        {question.label}
-        {question.required && <span className="required-mark">*</span>}
-      </label>
+      <div className="flex items-center gap-2">
+        <label htmlFor={question.id} className="question-label block">
+          {question.label}
+          {question.required && <span className="required-mark">*</span>}
+        </label>
+        {tooltip && (
+          <div className="relative">
+            <button
+              type="button"
+              className="text-[var(--color-warm-gray)] hover:text-[var(--color-terracotta)] transition-colors"
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              onFocus={() => setShowTooltip(true)}
+              onBlur={() => setShowTooltip(false)}
+              aria-label="More information"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            {showTooltip && (
+              <div className="tooltip-popup">
+                {tooltip}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       {question.description && (
         <p className="question-description">{question.description}</p>
       )}
       {isLongText ? (
-        <textarea {...commonProps} rows={4} />
+        <textarea {...commonProps} rows={4} onBlur={onBlur} />
+      ) : validationType === 'ssn' ? (
+        <div className="relative">
+          <input
+            type={showSSN ? 'text' : 'text'}
+            {...inputProps}
+            onFocus={() => setShowSSN(true)}
+            onBlur={() => {
+              setShowSSN(false);
+              onBlur?.();
+            }}
+            style={maskedValue && !showSSN ? { color: 'transparent', caretColor: 'transparent' } : undefined}
+          />
+          {maskedValue && !showSSN && (
+            <div className="absolute inset-0 flex items-center px-4 pointer-events-none text-[var(--color-charcoal)]">
+              {maskedValue}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowSSN(!showSSN)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-warm-gray)] hover:text-[var(--color-terracotta)] transition-colors"
+            aria-label={showSSN ? 'Hide SSN' : 'Show SSN'}
+          >
+            {showSSN ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            )}
+          </button>
+        </div>
       ) : (
-        <input type={getInputType()} {...inputProps} />
+        <input type={getInputType()} {...inputProps} onBlur={onBlur} />
       )}
       {error && (
         <p className="error-text">

@@ -19,6 +19,15 @@ import {
 } from '@/components/form';
 import { useFormAutoSave } from '@/hooks/useFormAutoSave';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { getTranslation, TranslationKey } from '@/lib/translations';
+import { FloatingProgressBar } from '@/components/FloatingProgressBar';
+import { AccessibilityControls } from '@/components/AccessibilityControls';
+import { DocumentsChecklist } from '@/components/DocumentsChecklist';
+import { FAQAccordion } from '@/components/FAQAccordion';
+import { SectionOverview } from '@/components/SectionOverview';
+import { SessionTimeoutWarning } from '@/components/SessionTimeoutWarning';
 
 export default function FormPage() {
   const router = useRouter();
@@ -35,8 +44,14 @@ export default function FormPage() {
   const [announcement, setAnnouncement] = useState('');
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showDocumentsChecklist, setShowDocumentsChecklist] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
+
+  // Accessibility
+  const { settings } = useAccessibility();
+  const t = (key: TranslationKey, params?: Record<string, string | number>) =>
+    getTranslation(key, settings.language, params);
 
   const {
     register,
@@ -161,6 +176,21 @@ export default function FormPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  });
+
+  // Mobile swipe navigation
+  useSwipeNavigation({
+    onSwipeLeft: () => {
+      if (!isLastPage && !showReviewPage) {
+        handleNext();
+      }
+    },
+    onSwipeRight: () => {
+      if (!isFirstPage && !showReviewPage) {
+        handlePrevious();
+      }
+    },
+    enabled: !showReviewPage,
   });
 
   // Check for restored draft from continue link
@@ -624,8 +654,14 @@ export default function FormPage() {
     );
   };
 
+  // Determine if clinical staff for conditional features
+  const isClinicalStaff = watchedValues.isClinicalStaff === 'Yes';
+
   return (
     <div className="min-h-screen py-8 px-4 sm:py-12 sm:px-6 relative">
+      {/* Floating progress bar */}
+      <FloatingProgressBar progress={progressPercentage} />
+
       {/* Screen reader announcements */}
       <div className="live-region" role="status" aria-live="polite" aria-atomic="true">
         {announcement}
@@ -634,6 +670,12 @@ export default function FormPage() {
       {/* Floating decorative shapes */}
       <div className="floating-shape floating-shape-1" />
       <div className="floating-shape floating-shape-2" />
+
+      {/* Accessibility controls */}
+      <AccessibilityControls />
+
+      {/* Session timeout warning */}
+      <SessionTimeoutWarning timeoutMinutes={30} warningMinutes={5} />
 
       <div className="max-w-2xl mx-auto">
         {/* Draft Restore Banner */}
@@ -667,6 +709,14 @@ export default function FormPage() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Documents Checklist - show on first page */}
+        {showDocumentsChecklist && currentPage === 0 && !showReviewPage && (
+          <DocumentsChecklist
+            isClinicalStaff={isClinicalStaff}
+            onDismiss={() => setShowDocumentsChecklist(false)}
+          />
         )}
 
         {/* Form Header Card */}
@@ -809,6 +859,18 @@ export default function FormPage() {
                   key={currentSection.id}
                   className={`page-transition ${pageDirection === 'forward' ? 'page-slide-enter-active' : 'page-slide-enter-active'}`}
                 >
+                  {/* Section Overview */}
+                  <SectionOverview
+                    section={currentSection}
+                    visibleQuestions={currentSection.questions.filter(shouldShowQuestion)}
+                    completedFields={new Set(
+                      currentSection.questions
+                        .filter(shouldShowQuestion)
+                        .filter((q) => isFieldComplete(q.id))
+                        .map((q) => q.id)
+                    )}
+                  />
+
                   <FormSection
                     title={currentSection.title}
                     description={currentSection.description}
@@ -869,6 +931,17 @@ export default function FormPage() {
                 <span className="keyboard-key">→</span>
                 <span>Next</span>
               </div>
+
+              {/* Mobile Swipe Indicator */}
+              <div className="swipe-indicator">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                </svg>
+                <span>{settings.language === 'es' ? 'Desliza para navegar' : 'Swipe to navigate'}</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
             </>
           )}
         </form>
@@ -889,13 +962,20 @@ export default function FormPage() {
           </div>
         )}
 
+        {/* FAQ Section */}
+        {!showReviewPage && (
+          <div className="mt-8">
+            <FAQAccordion isClinicalStaff={isClinicalStaff} />
+          </div>
+        )}
+
         {/* Footer */}
         <footer className="mt-16 text-center">
           <div className="flex items-center justify-center gap-2 text-xs text-[var(--color-warm-gray-light)]">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            <span>Your information is secure and encrypted</span>
+            <span>{settings.language === 'es' ? 'Tu información está segura y encriptada' : 'Your information is secure and encrypted'}</span>
           </div>
         </footer>
       </div>
