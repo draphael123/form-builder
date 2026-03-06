@@ -25,57 +25,65 @@ export function MultipleChoice({ question, register, errors, watch, setValue }: 
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+    <div className="space-y-3">
+      <label className="question-label block">
         {question.label}
-        {question.required && <span className="text-red-500 ml-1">*</span>}
+        {question.required && <span className="required-mark">*</span>}
       </label>
       {question.description && (
-        <p className="text-sm text-gray-500">{question.description}</p>
+        <p className="question-description">{question.description}</p>
       )}
       <div className="space-y-2">
-        {question.options.map((option) => (
-          <label
-            key={option.value}
-            className="flex items-center space-x-3 cursor-pointer group"
-          >
-            <input
-              type="radio"
-              value={option.value}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              {...register(question.id, {
-                required: question.required ? 'Please select an option' : false,
-              })}
-            />
-            <span className="text-sm text-gray-700 group-hover:text-gray-900">
-              {option.label}
-            </span>
-          </label>
-        ))}
+        {question.options.map((option) => {
+          const isSelected = selectedValue === option.value;
+          return (
+            <label
+              key={option.value}
+              className={`option-card ${isSelected ? 'selected' : ''}`}
+            >
+              <input
+                type="radio"
+                value={option.value}
+                className="form-radio"
+                {...register(question.id, {
+                  required: question.required ? 'Please select an option' : false,
+                })}
+              />
+              <span className="text-[var(--color-charcoal)]">
+                {option.label}
+              </span>
+            </label>
+          );
+        })}
         {question.allowOther && (
-          <label className="flex items-center space-x-3 cursor-pointer group">
+          <label className={`option-card ${selectedValue?.toString().startsWith('Other:') ? 'selected' : ''}`}>
             <input
               type="radio"
               value="__other__"
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              className="form-radio"
               {...register(question.id, {
                 required: question.required ? 'Please select an option' : false,
               })}
               onChange={() => setValue(question.id, `Other: ${otherValue}`)}
             />
-            <span className="text-sm text-gray-700 group-hover:text-gray-900">Other:</span>
+            <span className="text-[var(--color-charcoal)]">Other:</span>
             <input
               type="text"
               value={otherValue}
               onChange={(e) => handleOtherChange(e.target.value)}
-              className="flex-1 px-2 py-1 text-sm border-b border-gray-300 focus:outline-none focus:border-blue-500"
+              className="flex-1 px-3 py-1.5 text-sm bg-transparent border-b-2 border-[var(--color-parchment)] focus:border-[var(--color-terracotta)] focus:outline-none transition-colors"
               placeholder="Please specify"
             />
           </label>
         )}
       </div>
       {error && (
-        <p className="text-sm text-red-500">{error.message as string}</p>
+        <p className="error-text">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {error.message as string}
+        </p>
       )}
     </div>
   );

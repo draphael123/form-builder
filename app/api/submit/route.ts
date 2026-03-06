@@ -91,6 +91,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Generate PDF for email attachment
+    let pdfBuffer: Buffer | undefined;
+    let pdfFilename: string | undefined;
+    try {
+      const { generateSubmissionPDF, generatePDFFilename } = await import('@/lib/pdf-generator');
+      pdfBuffer = await generateSubmissionPDF(submission);
+      pdfFilename = generatePDFFilename(submission);
+      console.log('PDF generated for email attachment');
+    } catch (error) {
+      console.error('Failed to generate PDF for email (continuing without attachment):', error);
+    }
+
+    // Send email notifications (confirmation to submitter + HR notification)
+    try {
+      const { sendSubmissionEmails } = await import('@/lib/email');
+      await sendSubmissionEmails({
+        submitterEmail: formData.email || formData.personalEmailAddress || '',
+        submitterName: formData.fullLegalName || 'New Hire',
+        submissionId: submission.id,
+        submittedAt: new Date(submission.timestamp).toLocaleString(),
+        isClinicalStaff: formData.isClinicalStaff === 'Yes',
+        pdfBuffer,
+        pdfFilename,
+      });
+    } catch (error) {
+      console.error('Failed to send email notifications (continuing):', error);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Form submitted successfully',

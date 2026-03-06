@@ -24,10 +24,14 @@ function ensureSubmissionsFile() {
   }
 }
 
+export type SubmissionStatus = 'pending' | 'reviewed' | 'processing' | 'complete';
+
 export interface Submission {
   id: string;
   timestamp: string;
   data: Record<string, unknown>;
+  status?: SubmissionStatus;
+  statusUpdatedAt?: string;
 }
 
 // Get all submissions
@@ -74,6 +78,22 @@ export function deleteSubmission(id: string): boolean {
 
   fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify({ submissions: filtered }, null, 2));
   return true;
+}
+
+// Update submission status
+export function updateSubmissionStatus(id: string, status: SubmissionStatus): Submission | null {
+  const submissions = getSubmissions();
+  const index = submissions.findIndex(s => s.id === id);
+
+  if (index === -1) {
+    return null;
+  }
+
+  submissions[index].status = status;
+  submissions[index].statusUpdatedAt = new Date().toISOString();
+
+  fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify({ submissions }, null, 2));
+  return submissions[index];
 }
 
 // Generate a unique ID

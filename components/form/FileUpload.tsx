@@ -147,21 +147,21 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+    <div className="space-y-3">
+      <label className="question-label block">
         {question.label}
-        {question.required && <span className="text-red-500 ml-1">*</span>}
+        {question.required && <span className="required-mark">*</span>}
       </label>
       {question.description && (
-        <p className="text-sm text-gray-500">{question.description}</p>
+        <p className="question-description">{question.description}</p>
       )}
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
           dragActive
-            ? 'border-blue-500 bg-blue-50'
+            ? 'border-[var(--color-terracotta)] bg-[var(--color-terracotta)]/5'
             : error || uploadError
-            ? 'border-red-500'
-            : 'border-gray-300 hover:border-gray-400'
+            ? 'border-red-400 bg-red-50'
+            : 'border-[var(--color-parchment)] hover:border-[var(--color-terracotta-light)] bg-[var(--color-cream)]'
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -169,81 +169,95 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
         onDrop={handleDrop}
       >
         {isUploading ? (
-          <div className="space-y-2">
-            <svg
-              className="animate-spin mx-auto h-8 w-8 text-blue-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            <p className="text-sm text-gray-600">Uploading file...</p>
+          <div className="space-y-3">
+            <div className="mx-auto w-12 h-12 rounded-full bg-[var(--color-terracotta)]/10 flex items-center justify-center">
+              <svg
+                className="animate-spin h-6 w-6 text-[var(--color-terracotta)]"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+            </div>
+            <p className="text-sm text-[var(--color-warm-gray)]">Uploading file...</p>
           </div>
         ) : uploadedFile ? (
-          <div className="space-y-2">
-            <svg
-              className="mx-auto h-8 w-8 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            <p className="text-sm text-gray-700 font-medium">{uploadedFile.fileName}</p>
-            <a
-              href={uploadedFile.webViewLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-700 underline"
-            >
-              View uploaded file
-            </a>
-            <div>
+          <div className="space-y-3">
+            <div className="mx-auto w-12 h-12 rounded-full bg-[var(--color-sage)]/10 flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-[var(--color-sage)]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <p className="font-medium text-[var(--color-charcoal)]">{uploadedFile.fileName}</p>
+            <div className="flex items-center justify-center gap-4">
+              <a
+                href={uploadedFile.webViewLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-[var(--color-terracotta)] hover:text-[var(--color-terracotta-dark)] flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                View file
+              </a>
               <button
                 type="button"
                 onClick={removeFile}
-                className="text-sm text-red-600 hover:text-red-700"
+                className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
               >
-                Remove file
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Remove
               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              stroke="currentColor"
-              fill="none"
-              viewBox="0 0 48 48"
-            >
-              <path
-                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <div className="text-sm text-gray-600">
-              <label className="cursor-pointer text-blue-600 hover:text-blue-700">
-                <span>Upload a file</span>
+          <div className="space-y-3">
+            <div className="mx-auto w-12 h-12 rounded-full bg-[var(--color-parchment)] flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-[var(--color-warm-gray)]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
+            </div>
+            <div className="text-[var(--color-warm-gray)]">
+              <label className="cursor-pointer">
+                <span className="text-[var(--color-terracotta)] hover:text-[var(--color-terracotta-dark)] font-medium">
+                  Choose a file
+                </span>
                 <input
                   type="file"
                   className="sr-only"
@@ -252,13 +266,10 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
                   disabled={isUploading}
                 />
               </label>
-              <span> or drag and drop</span>
+              <span> or drag it here</span>
             </div>
-            <p className="text-xs text-gray-500">
-              {question.accept?.join(', ') || 'Any file'} up to {maxSizeMB}MB
-            </p>
-            <p className="text-xs text-gray-400">
-              Files are stored securely
+            <p className="text-xs text-[var(--color-warm-gray-light)]">
+              {question.accept?.join(', ') || 'Any file type'} up to {maxSizeMB}MB
             </p>
           </div>
         )}
@@ -268,7 +279,12 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
         required: question.required ? 'Please upload a file' : false,
       })} />
       {(error || uploadError) && (
-        <p className="text-sm text-red-500">{uploadError || (error?.message as string)}</p>
+        <p className="error-text">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {uploadError || (error?.message as string)}
+        </p>
       )}
     </div>
   );

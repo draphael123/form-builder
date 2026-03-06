@@ -1,0 +1,204 @@
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer';
+import { newHireFormConfig } from './form-config';
+
+// Create styles
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    fontSize: 10,
+    fontFamily: 'Helvetica',
+  },
+  header: {
+    marginBottom: 20,
+    borderBottom: '2px solid #2563eb',
+    paddingBottom: 15,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  metaInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    fontSize: 9,
+    color: '#6b7280',
+  },
+  section: {
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2563eb',
+    marginBottom: 10,
+    paddingBottom: 5,
+    borderBottom: '1px solid #e5e7eb',
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    paddingBottom: 5,
+    borderBottom: '1px solid #f3f4f6',
+  },
+  fieldLabel: {
+    width: '40%',
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  fieldValue: {
+    width: '60%',
+    color: '#1f2937',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    fontSize: 8,
+    color: '#9ca3af',
+    borderTop: '1px solid #e5e7eb',
+    paddingTop: 10,
+  },
+  badge: {
+    backgroundColor: '#dbeafe',
+    color: '#1e40af',
+    padding: '3px 8px',
+    borderRadius: 4,
+    fontSize: 9,
+  },
+  emptyValue: {
+    color: '#9ca3af',
+    fontStyle: 'italic',
+  },
+});
+
+interface SubmissionData {
+  id: string;
+  timestamp: string;
+  data: Record<string, unknown>;
+}
+
+// Get field label from config
+function getFieldLabel(fieldId: string): string {
+  for (const section of newHireFormConfig.sections) {
+    for (const question of section.questions) {
+      if (question.id === fieldId) {
+        return question.label;
+      }
+    }
+  }
+  return fieldId;
+}
+
+// Format field value for display
+function formatFieldValue(value: unknown): string {
+  if (value === undefined || value === null || value === '') {
+    return 'Not provided';
+  }
+  if (Array.isArray(value)) {
+    return value.join(', ');
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+// Group fields by section
+function groupFieldsBySection(data: Record<string, unknown>): Map<string, Array<{ id: string; label: string; value: string }>> {
+  const grouped = new Map<string, Array<{ id: string; label: string; value: string }>>();
+
+  for (const section of newHireFormConfig.sections) {
+    const sectionFields: Array<{ id: string; label: string; value: string }> = [];
+
+    for (const question of section.questions) {
+      if (data[question.id] !== undefined) {
+        sectionFields.push({
+          id: question.id,
+          label: question.label,
+          value: formatFieldValue(data[question.id]),
+        });
+      }
+    }
+
+    if (sectionFields.length > 0) {
+      grouped.set(section.title, sectionFields);
+    }
+  }
+
+  return grouped;
+}
+
+// PDF Document Component
+function SubmissionPDF({ submission }: { submission: SubmissionData }) {
+  const groupedFields = groupFieldsBySection(submission.data);
+  const submitterName = submission.data.fullLegalName || 'Unknown';
+  const isClinical = submission.data.isClinicalStaff === 'Yes';
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Fountain Onboarding</Text>
+          <Text style={styles.subtitle}>New Hire Information Summary</Text>
+          <View style={styles.metaInfo}>
+            <Text>Submission ID: {submission.id}</Text>
+            <Text>Submitted: {new Date(submission.timestamp).toLocaleString()}</Text>
+            <Text style={styles.badge}>{isClinical ? 'Clinical Staff' : 'Non-Clinical Staff'}</Text>
+          </View>
+        </View>
+
+        {/* Applicant Name */}
+        <View style={[styles.section, { backgroundColor: '#f9fafb', padding: 10, borderRadius: 4 }]}>
+          <Text style={{ fontSize: 12, fontWeight: 'bold' }}>Applicant: {String(submitterName)}</Text>
+        </View>
+
+        {/* Sections */}
+        {Array.from(groupedFields.entries()).map(([sectionTitle, fields]) => (
+          <View key={sectionTitle} style={styles.section} wrap={false}>
+            <Text style={styles.sectionTitle}>{sectionTitle}</Text>
+            {fields.map((field) => (
+              <View key={field.id} style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>{field.label}</Text>
+                <Text style={field.value === 'Not provided' ? styles.emptyValue : styles.fieldValue}>
+                  {field.value}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ))}
+
+        {/* Footer */}
+        <Text style={styles.footer}>
+          This document was automatically generated by Fountain Onboarding System.
+          Generated on {new Date().toLocaleString()}.
+        </Text>
+      </Page>
+    </Document>
+  );
+}
+
+// Generate PDF buffer
+export async function generateSubmissionPDF(submission: SubmissionData): Promise<Buffer> {
+  const buffer = await renderToBuffer(<SubmissionPDF submission={submission} />);
+  return Buffer.from(buffer);
+}
+
+// Generate filename
+export function generatePDFFilename(submission: SubmissionData): string {
+  const name = String(submission.data.fullLegalName || 'submission')
+    .replace(/[^a-zA-Z0-9]/g, '_')
+    .toLowerCase();
+  const date = new Date(submission.timestamp).toISOString().split('T')[0];
+  return `fountain_onboarding_${name}_${date}.pdf`;
+}

@@ -29,39 +29,47 @@ export function Checkbox({ question, register, errors, watch }: CheckboxProps) {
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+    <div className="space-y-3">
+      <label className="question-label block">
         {question.label}
-        {question.required && <span className="text-red-500 ml-1">*</span>}
+        {question.required && <span className="required-mark">*</span>}
       </label>
       {question.description && (
-        <p className="text-sm text-gray-500">{question.description}</p>
+        <p className="question-description">{question.description}</p>
       )}
       <div className="space-y-2">
-        {question.options.map((option) => (
-          <label
-            key={option.value}
-            className="flex items-center space-x-3 cursor-pointer group"
-          >
-            <input
-              type="checkbox"
-              value={option.value}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              {...register(question.id, { validate })}
-            />
-            <span className="text-sm text-gray-700 group-hover:text-gray-900">
-              {option.label}
-            </span>
-          </label>
-        ))}
+        {question.options.map((option) => {
+          const isSelected = selectedValues?.includes(option.value);
+          return (
+            <label
+              key={option.value}
+              className={`option-card ${isSelected ? 'selected' : ''}`}
+            >
+              <input
+                type="checkbox"
+                value={option.value}
+                className="form-checkbox"
+                {...register(question.id, { validate })}
+              />
+              <span className="text-[var(--color-charcoal)]">
+                {option.label}
+              </span>
+            </label>
+          );
+        })}
       </div>
       {selectedValues && selectedValues.length > 0 && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-[var(--color-warm-gray)]">
           {selectedValues.length} selected
         </p>
       )}
       {error && (
-        <p className="text-sm text-red-500">{error.message as string}</p>
+        <p className="error-text">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {error.message as string}
+        </p>
       )}
     </div>
   );
