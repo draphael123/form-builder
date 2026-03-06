@@ -1,8 +1,17 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+// SMTP Configuration - uses Google Workspace / Gmail SMTP
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER, // e.g., daniel@fountain.net
+    pass: process.env.SMTP_PASSWORD, // App password (not regular password)
+  },
+});
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+const FROM_EMAIL = process.env.SMTP_USER || 'noreply@fountain.net';
 const HR_NOTIFICATION_EMAILS = ['daniel@fountain.net', 'tammy.hale@fountain.net'];
 
 interface SubmissionEmailData {
@@ -15,15 +24,19 @@ interface SubmissionEmailData {
   pdfFilename?: string;
 }
 
+// Check if email is configured
+function isEmailConfigured(): boolean {
+  return !!(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+}
+
 // Send confirmation email to the person who submitted the form
 export async function sendConfirmationEmail(data: SubmissionEmailData): Promise<boolean> {
-  if (!resend) {
+  if (!isEmailConfigured()) {
     console.log('Email not configured - skipping confirmation email');
     return false;
   }
 
   try {
-    // Build attachments array if PDF is provided
     const attachments = data.pdfBuffer && data.pdfFilename
       ? [{
           filename: data.pdfFilename,
@@ -31,8 +44,8 @@ export async function sendConfirmationEmail(data: SubmissionEmailData): Promise<
         }]
       : undefined;
 
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    await transporter.sendMail({
+      from: `"Fountain Onboarding" <${FROM_EMAIL}>`,
       to: data.submitterEmail,
       subject: 'Fountain Onboarding - Submission Received',
       attachments,
@@ -95,7 +108,7 @@ export async function sendConfirmationEmail(data: SubmissionEmailData): Promise<
 
 // Send notification email to HR when a new submission is received
 export async function sendHRNotificationEmail(data: SubmissionEmailData): Promise<boolean> {
-  if (!resend) {
+  if (!isEmailConfigured()) {
     console.log('Email not configured - skipping HR notification');
     return false;
   }
@@ -104,9 +117,9 @@ export async function sendHRNotificationEmail(data: SubmissionEmailData): Promis
   const submissionLink = `${appUrl}/admin?highlight=${data.submissionId}`;
 
   try {
-    await resend.emails.send({
-      from: FROM_EMAIL,
-      to: HR_NOTIFICATION_EMAILS,
+    await transporter.sendMail({
+      from: `"Fountain Onboarding" <${FROM_EMAIL}>`,
+      to: HR_NOTIFICATION_EMAILS.join(', '),
       subject: `New Hire Submission: ${data.submitterName}`,
       html: `
         <!DOCTYPE html>
