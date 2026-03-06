@@ -35,12 +35,24 @@ function ensureSubmissionsFile() {
 
 export type SubmissionStatus = 'pending' | 'reviewed' | 'processing' | 'complete';
 
+export interface SectionTiming {
+  sectionId: string;
+  sectionTitle: string;
+  duration?: number; // in seconds
+}
+
+export interface TimingData {
+  totalDuration?: number; // in seconds
+  sectionTimings?: SectionTiming[];
+}
+
 export interface Submission {
   id: string;
   timestamp: string;
   data: Record<string, unknown>;
   status?: SubmissionStatus;
   statusUpdatedAt?: string;
+  timing?: TimingData;
 }
 
 // Get all submissions
@@ -59,11 +71,12 @@ export function getSubmissions(): Submission[] {
 }
 
 // Add a new submission
-export function addSubmission(data: Record<string, unknown>): Submission {
+export function addSubmission(data: Record<string, unknown>, timing?: TimingData): Submission {
   const newSubmission: Submission = {
     id: generateId(),
     timestamp: new Date().toISOString(),
     data,
+    timing,
   };
 
   try {

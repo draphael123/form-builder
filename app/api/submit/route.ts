@@ -14,9 +14,13 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.json();
 
-    // Always save to local storage first
-    const submission = addSubmission(formData);
-    console.log('Submission saved locally:', submission.id);
+    // Extract timing data (prefixed with underscore to separate from form data)
+    const timingData = formData._timing;
+    delete formData._timing;
+
+    // Always save to local storage first (with timing data)
+    const submission = addSubmission(formData, timingData);
+    console.log('Submission saved locally:', submission.id, timingData ? `(${timingData.totalDuration}s)` : '');
 
     // If Google Sheets is configured, also save there
     if (isGoogleSheetsConfigured()) {

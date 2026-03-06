@@ -20,6 +20,7 @@ import {
 import { useFormAutoSave } from '@/hooks/useFormAutoSave';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getTranslation, TranslationKey } from '@/lib/translations';
 import { FloatingProgressBar } from '@/components/FloatingProgressBar';
@@ -296,6 +297,13 @@ export default function FormPage() {
   const isLastPage = currentPage === totalPages - 1;
   const isFirstPage = currentPage === 0;
 
+  // Time tracking hook
+  const { getCompletionData, getElapsedTime } = useTimeTracking({
+    formId: 'new-hire-form',
+    currentSectionId: currentSection?.id || 'intro',
+    currentSectionTitle: currentSection?.title || 'Introduction',
+  });
+
   // Track completed sections
   const completedSections = useMemo(() => {
     const completed = new Set<number>();
@@ -498,13 +506,26 @@ export default function FormPage() {
     setIsSubmitting(true);
     setSubmitError(null);
 
+    // Get timing data for analytics
+    const timingData = getCompletionData();
+
     try {
       const response = await fetch('/api/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          _timing: {
+            totalDuration: timingData.totalDuration,
+            sectionTimings: timingData.sectionTimings.map(s => ({
+              sectionId: s.sectionId,
+              sectionTitle: s.sectionTitle,
+              duration: s.duration,
+            })),
+          },
+        }),
       });
 
       const result = await response.json();

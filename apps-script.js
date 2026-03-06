@@ -33,6 +33,11 @@ function doPost(e) {
       sendEmails(data.emailData);
     }
 
+    // Send reminder email if reminder data is provided
+    if (data.reminderEmail) {
+      sendReminderEmail(data.reminderEmail);
+    }
+
     return ContentService.createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
@@ -169,6 +174,73 @@ function sendHRNotificationEmail(name, email, submissionId, submittedAt, isClini
   });
 }
 
+// Send reminder email for incomplete forms
+function sendReminderEmail(reminderData) {
+  const { to, subject, name, progress, continueUrl, reminderNumber } = reminderData;
+
+  const urgencyMessages = [
+    "Just a friendly reminder to complete your onboarding form.",
+    "We noticed you haven't finished your onboarding form yet.",
+    "This is your final reminder to complete your onboarding form."
+  ];
+
+  const urgencyMessage = urgencyMessages[Math.min(reminderNumber - 1, urgencyMessages.length - 1)];
+
+  const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f59e0b; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
+        .progress-container { background-color: white; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #e5e7eb; }
+        .progress-bar { background-color: #e5e7eb; border-radius: 9999px; height: 20px; overflow: hidden; }
+        .progress-fill { background-color: #10b981; height: 100%; border-radius: 9999px; }
+        .button { display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: 600; }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6b7280; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1 style="margin: 0;">Complete Your Onboarding</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${name},</p>
+          <p>${urgencyMessage}</p>
+
+          <div class="progress-container">
+            <p><strong>Your Progress:</strong></p>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${progress}%;"></div>
+            </div>
+            <p style="text-align: center; margin-top: 8px; font-weight: 600; color: #10b981;">${progress}% Complete</p>
+          </div>
+
+          <p>Click the button below to pick up where you left off:</p>
+
+          <p style="text-align: center;">
+            <a href="${continueUrl}" class="button">Continue My Form</a>
+          </p>
+
+          <p style="margin-top: 20px;">If you have any questions or need assistance, please contact our HR department.</p>
+
+          <p>Best regards,<br>Fountain HR Team</p>
+        </div>
+        <div class="footer">
+          <p>This is an automated reminder. If you've already completed your form, please disregard this message.</p>
+          <p style="margin-top: 10px;">Can't click the button? Copy this link: ${continueUrl}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  GmailApp.sendEmail(to, subject, '', { htmlBody: htmlBody });
+}
+
 // Test function - run this manually to verify emails work
 function testEmail() {
   sendEmails({
@@ -179,4 +251,17 @@ function testEmail() {
     isClinicalStaff: true
   });
   Logger.log('Test emails sent!');
+}
+
+// Test reminder email
+function testReminderEmail() {
+  sendReminderEmail({
+    to: 'daniel@fountain.net',
+    subject: 'Reminder: Complete your Fountain Onboarding Form',
+    name: 'Test User',
+    progress: 45,
+    continueUrl: APP_URL + '/continue/test-draft-123',
+    reminderNumber: 1
+  });
+  Logger.log('Test reminder email sent!');
 }

@@ -5,12 +5,24 @@ import Link from 'next/link';
 
 type SubmissionStatus = 'pending' | 'reviewed' | 'processing' | 'complete';
 
+interface SectionTiming {
+  sectionId: string;
+  sectionTitle: string;
+  duration?: number;
+}
+
+interface TimingData {
+  totalDuration?: number;
+  sectionTimings?: SectionTiming[];
+}
+
 interface Submission {
   id: string;
   timestamp: string;
   data: Record<string, unknown>;
   status?: SubmissionStatus;
   statusUpdatedAt?: string;
+  timing?: TimingData;
 }
 
 const STATUS_OPTIONS: { value: SubmissionStatus; label: string; color: string }[] = [
@@ -155,6 +167,20 @@ export default function AdminPage() {
     return new Date(timestamp).toLocaleString();
   };
 
+  // Format duration in seconds to readable string
+  const formatDuration = (seconds?: number): string => {
+    if (!seconds) return '-';
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes < 60) {
+      return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
+  };
+
   // Get a preview of the submission (first few fields)
   const getPreview = (data: Record<string, unknown>) => {
     const name = data.fullLegalName || data.printedName || 'Unknown';
@@ -179,7 +205,14 @@ export default function AdminPage() {
     const pending = submissions.filter(s => !s.status || s.status === 'pending').length;
     const complete = submissions.filter(s => s.status === 'complete').length;
     const clinical = submissions.filter(s => s.data.isClinicalStaff === 'Yes').length;
-    return { total, pending, complete, clinical };
+
+    // Calculate average completion time
+    const submissionsWithTiming = submissions.filter(s => s.timing?.totalDuration);
+    const avgTime = submissionsWithTiming.length > 0
+      ? Math.round(submissionsWithTiming.reduce((sum, s) => sum + (s.timing?.totalDuration || 0), 0) / submissionsWithTiming.length)
+      : null;
+
+    return { total, pending, complete, clinical, avgTime };
   }, [submissions]);
 
   return (
@@ -239,7 +272,7 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-4">
             <p className="text-sm text-gray-500">Total</p>
             <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
@@ -255,6 +288,12 @@ export default function AdminPage() {
           <div className="bg-white rounded-lg shadow p-4">
             <p className="text-sm text-gray-500">Clinical Staff</p>
             <p className="text-2xl font-bold text-blue-600">{stats.clinical}</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <p className="text-sm text-gray-500">Avg. Completion</p>
+            <p className="text-2xl font-bold text-purple-600">
+              {stats.avgTime ? formatDuration(stats.avgTime) : '-'}
+            </p>
           </div>
         </div>
 
@@ -386,6 +425,14 @@ export default function AdminPage() {
                               <span className="text-xs text-gray-400">
                                 {formatDate(submission.timestamp)}
                               </span>
+                              {submission.timing?.totalDuration && (
+                                <span className="inline-flex items-center gap-0.5 text-xs text-purple-600">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  {formatDuration(submission.timing.totalDuration)}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -433,6 +480,34 @@ export default function AdminPage() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Timing Data */}
+                  {selectedSubmission.timing?.totalDuration && (
+                    <div className="mb-6 p-4 bg-purple-50 rounded-lg">
+                      <h3 className="text-sm font-medium text-purple-900 mb-3 flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Completion Time
+                      </h3>
+                      <p className="text-2xl font-bold text-purple-700 mb-3">
+                        {formatDuration(selectedSubmission.timing.totalDuration)}
+                      </p>
+                      {selectedSubmission.timing.sectionTimings && selectedSubmission.timing.sectionTimings.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-purple-800 uppercase">Time per Section</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {selectedSubmission.timing.sectionTimings.map((section) => (
+                              <div key={section.sectionId} className="flex justify-between text-sm">
+                                <span className="text-purple-700 truncate">{section.sectionTitle}</span>
+                                <span className="text-purple-900 font-medium ml-2">{formatDuration(section.duration)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-4 max-h-[calc(100vh-450px)] overflow-y-auto">
                     {Object.entries(selectedSubmission.data).map(([key, value]) => (
