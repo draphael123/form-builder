@@ -136,8 +136,18 @@ function logToSpreadsheet(headers, row) {
     sheet.appendRow(headers);
   }
 
+  // Convert Google Drive URLs to clickable hyperlinks
+  const processedRow = row.map(function(cell, index) {
+    if (typeof cell === 'string' && cell.includes('drive.google.com')) {
+      // Use header name as link text, or "View File" as fallback
+      const linkText = headers[index] ? headers[index].substring(0, 30) : 'View File';
+      return '=HYPERLINK("' + cell + '", "📎 ' + linkText + '")';
+    }
+    return cell;
+  });
+
   // Append the data row
-  sheet.appendRow(row);
+  sheet.appendRow(processedRow);
 }
 
 // ===========================================
