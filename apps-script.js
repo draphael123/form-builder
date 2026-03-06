@@ -131,9 +131,28 @@ function uploadFileToDrive(fileData) {
 function logToSpreadsheet(headers, row) {
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getActiveSheet();
 
-  // Add headers if sheet is empty
-  if (sheet.getLastRow() === 0) {
+  // Check if headers exist and match
+  const lastRow = sheet.getLastRow();
+  if (lastRow === 0) {
+    // Empty sheet - add headers
     sheet.appendRow(headers);
+  } else {
+    // Check if first row matches expected headers
+    const existingHeaders = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+    const headersMatch = headers.every(function(h, i) {
+      return existingHeaders[i] === h;
+    });
+
+    if (!headersMatch) {
+      // Update headers to match current form structure
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      Logger.log('Headers updated to match current form structure');
+    }
+  }
+
+  // Ensure row has same length as headers (pad with empty strings if needed)
+  while (row.length < headers.length) {
+    row.push('');
   }
 
   // Convert Google Drive URLs to clickable hyperlinks
