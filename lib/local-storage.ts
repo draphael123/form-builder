@@ -1,26 +1,35 @@
 import fs from 'fs';
 import path from 'path';
 
-// Directory for storing data
-const DATA_DIR = path.join(process.cwd(), 'data');
+// Use /tmp on Vercel (serverless), or local data dir in development
+const isVercel = process.env.VERCEL === '1';
+const DATA_DIR = isVercel ? '/tmp' : path.join(process.cwd(), 'data');
 const SUBMISSIONS_FILE = path.join(DATA_DIR, 'submissions.json');
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
+const UPLOADS_DIR = isVercel ? '/tmp/uploads' : path.join(process.cwd(), 'public', 'uploads');
 
 // Ensure directories exist
 function ensureDirectories() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(UPLOADS_DIR)) {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+  } catch (error) {
+    console.error('Error creating directories:', error);
   }
 }
 
 // Initialize submissions file if it doesn't exist
 function ensureSubmissionsFile() {
-  ensureDirectories();
-  if (!fs.existsSync(SUBMISSIONS_FILE)) {
-    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify({ submissions: [] }, null, 2));
+  try {
+    ensureDirectories();
+    if (!fs.existsSync(SUBMISSIONS_FILE)) {
+      fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify({ submissions: [] }, null, 2));
+    }
+  } catch (error) {
+    console.error('Error ensuring submissions file:', error);
   }
 }
 
@@ -36,27 +45,37 @@ export interface Submission {
 
 // Get all submissions
 export function getSubmissions(): Submission[] {
-  ensureSubmissionsFile();
-  const content = fs.readFileSync(SUBMISSIONS_FILE, 'utf-8');
-  const parsed = JSON.parse(content);
-  return parsed.submissions || [];
+  try {
+    ensureSubmissionsFile();
+    if (fs.existsSync(SUBMISSIONS_FILE)) {
+      const content = fs.readFileSync(SUBMISSIONS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      return parsed.submissions || [];
+    }
+  } catch (error) {
+    console.error('Error reading submissions:', error);
+  }
+  return [];
 }
 
 // Add a new submission
 export function addSubmission(data: Record<string, unknown>): Submission {
-  ensureSubmissionsFile();
-
-  const submissions = getSubmissions();
-
   const newSubmission: Submission = {
     id: generateId(),
     timestamp: new Date().toISOString(),
     data,
   };
 
-  submissions.push(newSubmission);
-
-  fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify({ submissions }, null, 2));
+  try {
+    ensureSubmissionsFile();
+    const submissions = getSubmissions();
+    submissions.push(newSubmission);
+    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify({ submissions }, null, 2));
+  } catch (error) {
+    // Log but don't fail - we still return the submission object
+    // Data will be saved to Google Sheets if configured
+    console.error('Error saving submission to local storage:', error);
+  }
 
   return newSubmission;
 }
@@ -106,26 +125,31 @@ export function saveFileLocally(
   fileBase64: string,
   fileName: string,
   submitterName?: string
-): { filePath: string; publicUrl: string } {
-  ensureDirectories();
+): { filePath: string; publicUrl: string } | null {
+  try {
+    ensureDirectories();
 
-  // Create unique filename
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const sanitizedSubmitterName = submitterName?.replace(/[^a-zA-Z0-9]/g, '_') || 'unknown';
-  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-  const uniqueFileName = `${sanitizedSubmitterName}_${timestamp}_${sanitizedFileName}`;
+    // Create unique filename
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const sanitizedSubmitterName = submitterName?.replace(/[^a-zA-Z0-9]/g, '_') || 'unknown';
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const uniqueFileName = `${sanitizedSubmitterName}_${timestamp}_${sanitizedFileName}`;
 
-  // Convert base64 to buffer and save
-  const buffer = Buffer.from(fileBase64, 'base64');
-  const filePath = path.join(UPLOADS_DIR, uniqueFileName);
+    // Convert base64 to buffer and save
+    const buffer = Buffer.from(fileBase64, 'base64');
+    const filePath = path.join(UPLOADS_DIR, uniqueFileName);
 
-  fs.writeFileSync(filePath, buffer);
+    fs.writeFileSync(filePath, buffer);
 
-  // Return the public URL (relative to /public)
-  return {
-    filePath,
-    publicUrl: `/uploads/${uniqueFileName}`,
-  };
+    // Return the public URL (relative to /public)
+    return {
+      filePath,
+      publicUrl: `/uploads/${uniqueFileName}`,
+    };
+  } catch (error) {
+    console.error('Error saving file locally:', error);
+    return null;
+  }
 }
 
 // Delete a file
