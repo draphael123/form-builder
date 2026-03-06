@@ -275,10 +275,21 @@ export default function FormPage() {
     const { field, equals } = question.showWhen;
     const currentValue = watchedValues[field];
 
-    if (Array.isArray(equals)) {
-      return equals.includes(currentValue as string);
+    // Handle undefined/null currentValue
+    if (currentValue === undefined || currentValue === null) {
+      return false;
     }
 
+    // If equals is an array, check if currentValue is in the array
+    if (Array.isArray(equals)) {
+      // Ensure currentValue is a string before checking
+      if (typeof currentValue === 'string') {
+        return equals.includes(currentValue);
+      }
+      return false;
+    }
+
+    // Simple string comparison
     return currentValue === equals;
   }, [watchedValues]);
 

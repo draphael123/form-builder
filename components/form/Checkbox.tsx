@@ -12,7 +12,9 @@ interface CheckboxProps {
 
 export function Checkbox({ question, register, errors, watch }: CheckboxProps) {
   const error = errors[question.id];
-  const selectedValues = watch(question.id) as string[] | undefined;
+  const rawValue = watch(question.id);
+  // Ensure selectedValues is always an array or undefined
+  const selectedValues = Array.isArray(rawValue) ? rawValue : undefined;
 
   const validate = (value: unknown) => {
     const arr = value as string[] | undefined;
