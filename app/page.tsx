@@ -360,6 +360,21 @@ export default function FormPage() {
 
   const progressPercentage = (questionCounts.endOfCurrentPage / questionCounts.total) * 100;
 
+  // Estimate time remaining (roughly 2 minutes per section)
+  const estimatedTimeRemaining = useMemo(() => {
+    const sectionsRemaining = totalPages - currentPage - 1;
+    const currentSectionProgress = 0.5; // Assume halfway through current section on average
+    const totalMinutesRemaining = (sectionsRemaining + currentSectionProgress) * 2;
+
+    if (totalMinutesRemaining < 1) {
+      return 'Less than 1 min';
+    } else if (totalMinutesRemaining < 2) {
+      return '~1 min left';
+    } else {
+      return `~${Math.round(totalMinutesRemaining)} mins left`;
+    }
+  }, [totalPages, currentPage]);
+
   // Check if a field has a valid value
   const isFieldComplete = useCallback((questionId: string): boolean => {
     const value = watchedValues[questionId];
@@ -849,6 +864,13 @@ export default function FormPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                  {/* Estimated time remaining */}
+                  <span className="flex items-center gap-1.5 text-xs text-[var(--color-warm-gray)] bg-[var(--color-parchment)] px-2 py-1 rounded-full">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {estimatedTimeRemaining}
+                  </span>
                   {lastSavedText && (
                     <span className="flex items-center gap-1.5 text-xs text-[var(--color-sage)]">
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
