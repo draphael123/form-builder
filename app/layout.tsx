@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,13 +38,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AccessibilityProvider>
-          {children}
-        </AccessibilityProvider>
+        <ThemeProvider>
+          <AccessibilityProvider>
+            {children}
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: 'white',
+                  border: '1px solid var(--color-parchment)',
+                  borderRadius: '12px',
+                  boxShadow: 'var(--shadow-warm)',
+                  fontFamily: 'var(--font-body)',
+                },
+                classNames: {
+                  success: 'toast-success',
+                  error: 'toast-error',
+                  info: 'toast-info',
+                },
+              }}
+              expand={false}
+              richColors
+            />
+          </AccessibilityProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

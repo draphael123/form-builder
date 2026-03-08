@@ -3,117 +3,39 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, useCallback, Suspense } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { newHireFormConfig } from '@/lib/form-config';
-
-// Confetti particle class
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  color: string;
-  size: number;
-  rotation: number;
-  rotationSpeed: number;
-}
+import { celebrateSubmit } from '@/lib/confetti';
 
 function useConfetti() {
-  const [isActive, setIsActive] = useState(false);
-
   const startConfetti = useCallback(() => {
-    setIsActive(true);
-    setTimeout(() => setIsActive(false), 5000);
+    celebrateSubmit();
   }, []);
 
-  useEffect(() => {
-    if (!isActive) return;
-
-    const canvas = document.getElementById('confetti-canvas') as HTMLCanvasElement;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const colors = ['#2563EB', '#3B82F6', '#10B981', '#34D399', '#F59E0B', '#EF4444', '#8B5CF6'];
-    const particles: Particle[] = [];
-
-    // Create particles
-    for (let i = 0; i < 150; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height - canvas.height,
-        vx: (Math.random() - 0.5) * 4,
-        vy: Math.random() * 3 + 2,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        size: Math.random() * 8 + 4,
-        rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 10,
-      });
-    }
-
-    let animationId: number;
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach((particle) => {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        particle.vy += 0.1; // gravity
-        particle.rotation += particle.rotationSpeed;
-
-        ctx.save();
-        ctx.translate(particle.x, particle.y);
-        ctx.rotate((particle.rotation * Math.PI) / 180);
-        ctx.fillStyle = particle.color;
-        ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size / 2);
-        ctx.restore();
-      });
-
-      // Remove particles that have fallen off screen
-      const activeParticles = particles.filter((p) => p.y < canvas.height + 50);
-
-      if (activeParticles.length > 0) {
-        animationId = requestAnimationFrame(animate);
-      }
-    };
-
-    animate();
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [isActive]);
-
-  return { isActive, startConfetti };
+  return { startConfetti };
 }
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const submissionId = searchParams.get('id');
   const [isDownloading, setIsDownloading] = useState(false);
-  const { isActive: showConfetti, startConfetti } = useConfetti();
+  const { startConfetti } = useConfetti();
 
   // Start confetti on mount
   useEffect(() => {
     startConfetti();
+    toast.success('Form submitted successfully!', {
+      description: 'You will receive a confirmation email shortly.',
+    });
   }, [startConfetti]);
 
   const handleDownloadPDF = async () => {
     if (!submissionId) return;
 
     setIsDownloading(true);
+    const loadingToast = toast.loading('Generating PDF...');
+
     try {
       const response = await fetch(`/api/submissions/${submissionId}/pdf`);
 
@@ -139,47 +61,70 @@ function SuccessContent() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+
+      toast.success('PDF downloaded!', { id: loadingToast });
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      alert('Failed to download PDF. Please try again.');
+      toast.error('Failed to download PDF. Please try again.', { id: loadingToast });
     } finally {
       setIsDownloading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
-      {/* Confetti Canvas */}
-      {showConfetti && (
-        <canvas id="confetti-canvas" className="confetti-canvas" />
-      )}
-
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       {/* Floating decorative shapes */}
       <div className="floating-shape floating-shape-1" />
       <div className="floating-shape floating-shape-2" />
 
-      <div className="form-card max-w-md w-full animate-fade-in-up">
+      <motion.div
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="form-card max-w-md w-full">
         <div className="p-10 text-center">
           {/* Success Icon */}
-          <div className="mb-8">
-            <div className="mx-auto w-20 h-20 rounded-full bg-[var(--color-sage)]/10 flex items-center justify-center relative">
-              <svg
-                className="w-10 h-10 text-[var(--color-sage)]"
+          <motion.div
+            className="mb-8"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
+          >
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-[var(--color-sage)] to-[var(--color-sage-light)] flex items-center justify-center relative shadow-lg">
+              <motion.svg
+                className="w-10 h-10 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
               >
-                <path
+                <motion.path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={3}
                   d="M5 13l4 4L19 7"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ delay: 0.5, duration: 0.5 }}
                 />
-              </svg>
-              {/* Decorative ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-[var(--color-sage)]/20 animate-ping" style={{ animationDuration: '2s' }} />
+              </motion.svg>
+              {/* Decorative rings */}
+              <motion.div
+                className="absolute inset-0 rounded-full border-2 border-[var(--color-sage)]"
+                initial={{ scale: 1, opacity: 0.5 }}
+                animate={{ scale: 1.5, opacity: 0 }}
+                transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}
+              />
+              <motion.div
+                className="absolute inset-0 rounded-full border-2 border-[var(--color-sage)]"
+                initial={{ scale: 1, opacity: 0.3 }}
+                animate={{ scale: 2, opacity: 0 }}
+                transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5, delay: 0.3 }}
+              />
             </div>
-          </div>
+          </motion.div>
 
           {/* Title */}
           <h1 className="font-display text-3xl font-semibold text-[var(--color-charcoal)] mb-3">
@@ -267,17 +212,19 @@ function SuccessContent() {
           </div>
 
           {/* Replay Confetti Button */}
-          <button
+          <motion.button
             onClick={startConfetti}
             className="mt-6 text-sm text-[var(--color-warm-gray-light)] hover:text-[var(--color-terracotta)] transition-colors inline-flex items-center gap-1"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
             Celebrate again
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

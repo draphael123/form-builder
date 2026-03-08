@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { StatusPill, StaffTypePill, Avatar, SkeletonTable, NoSubmissionsState, ThemeToggle } from '@/components/ui';
 
 type SubmissionStatus = 'pending' | 'reviewed' | 'processing' | 'complete';
 
@@ -127,11 +130,12 @@ export default function AdminPage() {
         if (selectedSubmission?.id === id) {
           setSelectedSubmission({ ...selectedSubmission, status: newStatus });
         }
+        toast.success(`Status updated to ${newStatus}`);
       } else {
-        alert(result.message);
+        toast.error(result.message);
       }
     } catch (err) {
-      alert('Failed to update status');
+      toast.error('Failed to update status');
       console.error(err);
     }
   };
@@ -141,6 +145,8 @@ export default function AdminPage() {
     if (!confirm('Are you sure you want to delete this submission?')) {
       return;
     }
+
+    const loadingToast = toast.loading('Deleting submission...');
 
     try {
       const response = await fetch(`/api/submissions?id=${id}`, {
@@ -153,11 +159,12 @@ export default function AdminPage() {
         if (selectedSubmission?.id === id) {
           setSelectedSubmission(null);
         }
+        toast.success('Submission deleted', { id: loadingToast });
       } else {
-        alert(result.message);
+        toast.error(result.message, { id: loadingToast });
       }
     } catch (err) {
-      alert('Failed to delete submission');
+      toast.error('Failed to delete submission', { id: loadingToast });
       console.error(err);
     }
   };
@@ -216,21 +223,29 @@ export default function AdminPage() {
   }, [submissions]);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[var(--color-cream)]">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="sticky-header shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Form Submissions</h1>
-              <p className="text-sm text-gray-500 mt-1">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <h1 className="text-2xl font-bold text-[var(--color-charcoal)] font-display">Form Submissions</h1>
+              <p className="text-sm text-[var(--color-warm-gray)] mt-1">
                 Manage and review onboarding submissions
               </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex flex-wrap items-center gap-3"
+            >
+              <ThemeToggle size="sm" />
               <Link
                 href="/"
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-[var(--color-charcoal)] bg-white border border-[var(--color-parchment)] rounded-lg hover:bg-[var(--color-cream)] transition-colors"
               >
                 View Form
               </Link>
@@ -238,7 +253,7 @@ export default function AdminPage() {
                 href="https://docs.google.com/spreadsheets/d/1etgBQL9BjxFVVN4JYHN9a_6IfQr41gj8aDMrt6gpT_Y"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 inline-flex items-center gap-1.5"
+                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 inline-flex items-center gap-1.5 transition-colors"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
@@ -248,24 +263,30 @@ export default function AdminPage() {
               </a>
               <Link
                 href="/admin/analytics"
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Analytics
               </Link>
               <button
-                onClick={handleExportCSV}
+                onClick={() => {
+                  handleExportCSV();
+                  toast.success('CSV export started');
+                }}
                 disabled={submissions.length === 0}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Export CSV
               </button>
               <button
-                onClick={fetchSubmissions}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                onClick={() => {
+                  fetchSubmissions();
+                  toast.info('Refreshing submissions...');
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-terracotta)] rounded-lg hover:bg-[var(--color-terracotta-dark)] transition-colors"
               >
                 Refresh
               </button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </header>
@@ -273,28 +294,27 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-500">Total</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-500">Pending</p>
-            <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-500">Complete</p>
-            <p className="text-2xl font-bold text-green-600">{stats.complete}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-500">Clinical Staff</p>
-            <p className="text-2xl font-bold text-blue-600">{stats.clinical}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm text-gray-500">Avg. Completion</p>
-            <p className="text-2xl font-bold text-purple-600">
-              {stats.avgTime ? formatDuration(stats.avgTime) : '-'}
-            </p>
-          </div>
+          {[
+            { label: 'Total', value: stats.total, color: 'text-[var(--color-charcoal)]', icon: '📊' },
+            { label: 'Pending', value: stats.pending, color: 'text-yellow-600', icon: '⏳' },
+            { label: 'Complete', value: stats.complete, color: 'text-green-600', icon: '✓' },
+            { label: 'Clinical Staff', value: stats.clinical, color: 'text-blue-600', icon: '🏥' },
+            { label: 'Avg. Completion', value: stats.avgTime ? formatDuration(stats.avgTime) : '-', color: 'text-purple-600', icon: '⏱' },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="bg-white rounded-xl shadow-sm p-4 card-hover border border-[var(--color-parchment)]"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-[var(--color-warm-gray)]">{stat.label}</p>
+                <span className="text-lg">{stat.icon}</span>
+              </div>
+              <p className={`text-2xl font-bold ${stat.color} mt-1`}>{stat.value}</p>
+            </motion.div>
+          ))}
         </div>
 
         {/* Search and Filters */}
@@ -349,96 +369,111 @@ export default function AdminPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading submissions...</p>
-          </div>
+          <SkeletonTable rows={5} />
         ) : error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"
+          >
             {error}
-          </div>
+          </motion.div>
         ) : filteredSubmissions.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {submissions.length === 0 ? 'No submissions yet' : 'No matching submissions'}
-            </h3>
-            <p className="mt-2 text-gray-500">
-              {submissions.length === 0
-                ? 'Submissions will appear here once the form is filled out.'
-                : 'Try adjusting your search or filters.'}
-            </p>
-            {submissions.length === 0 && (
-              <Link
-                href="/"
-                className="mt-4 inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-              >
-                Go to Form
-              </Link>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-xl shadow-sm border border-[var(--color-parchment)]"
+          >
+            {submissions.length === 0 ? (
+              <NoSubmissionsState />
+            ) : (
+              <div className="text-center py-12 px-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-[var(--color-warm-gray)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <h3 className="mt-4 text-lg font-medium text-[var(--color-charcoal)]">
+                  No matching submissions
+                </h3>
+                <p className="mt-2 text-[var(--color-warm-gray)]">
+                  Try adjusting your search or filters.
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setStatusFilter('all');
+                    setStaffTypeFilter('all');
+                  }}
+                  className="mt-4 px-4 py-2 text-sm font-medium text-[var(--color-terracotta)] border border-[var(--color-terracotta)] rounded-lg hover:bg-[var(--color-terracotta)]/5 transition-colors"
+                >
+                  Clear filters
+                </button>
+              </div>
             )}
-          </div>
+          </motion.div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Submissions List */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="divide-y divide-gray-200 max-h-[calc(100vh-400px)] overflow-y-auto">
-                  {filteredSubmissions.map((submission) => {
-                    const preview = getPreview(submission.data);
-                    const isSelected = selectedSubmission?.id === submission.id;
+                  <AnimatePresence>
+                    {filteredSubmissions.map((submission, index) => {
+                      const preview = getPreview(submission.data);
+                      const isSelected = selectedSubmission?.id === submission.id;
 
-                    return (
-                      <div
-                        key={submission.id}
-                        onClick={() => setSelectedSubmission(submission)}
-                        className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                          isSelected ? 'bg-blue-50 border-l-4 border-blue-600' : ''
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {preview.name}
-                              </p>
-                              {preview.isClinical && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                  Clinical
+                      return (
+                        <motion.div
+                          key={submission.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.02 }}
+                          onClick={() => setSelectedSubmission(submission)}
+                          className={`p-4 cursor-pointer hover:bg-[var(--color-cream)] transition-all ${
+                            isSelected ? 'bg-[var(--color-terracotta)]/5 border-l-4 border-[var(--color-terracotta)]' : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar name={preview.name} size="md" />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-sm font-medium text-[var(--color-charcoal)] truncate">
+                                  {preview.name}
+                                </p>
+                                {preview.isClinical && (
+                                  <StaffTypePill type="clinical" size="sm" />
+                                )}
+                              </div>
+                              <p className="text-sm text-[var(--color-warm-gray)] truncate">{preview.email}</p>
+                              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                <StatusPill status={(submission.status || 'pending') as 'pending' | 'reviewed' | 'processing' | 'complete'} size="sm" animated={false} />
+                                <span className="text-xs text-[var(--color-warm-gray-light)]">
+                                  {formatDate(submission.timestamp)}
                                 </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-500 truncate">{preview.email}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              {getStatusBadge(submission.status)}
-                              <span className="text-xs text-gray-400">
-                                {formatDate(submission.timestamp)}
-                              </span>
-                              {submission.timing?.totalDuration && (
-                                <span className="inline-flex items-center gap-0.5 text-xs text-purple-600">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  {formatDuration(submission.timing.totalDuration)}
-                                </span>
-                              )}
+                                {submission.timing?.totalDuration && (
+                                  <span className="inline-flex items-center gap-0.5 text-xs text-purple-600">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {formatDuration(submission.timing.totalDuration)}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>

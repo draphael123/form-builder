@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addSubmission } from '@/lib/local-storage';
 
+// Convert Google Drive/Docs URLs to =HYPERLINK() formulas so they render as
+// clickable links in Google Sheets (works because valueInputOption: USER_ENTERED
+// interprets formula strings).
+function toHyperlinkIfDriveUrl(value: string): string {
+  if (
+    value.includes('drive.google.com') ||
+    value.includes('docs.google.com')
+  ) {
+    // Escape any double-quotes inside the URL (rare but safe)
+    const safeUrl = value.replace(/"/g, '""');
+    return `=HYPERLINK("${safeUrl}", "📎 Click to View")`;
+  }
+  return value;
+}
+
 // Check if Google Sheets is configured
 const isGoogleSheetsConfigured = () => {
   return !!(
@@ -57,7 +72,8 @@ export async function POST(request: NextRequest) {
             return JSON.stringify(value);
           }
 
-          return String(value);
+          // Convert Drive URLs to clickable HYPERLINK formulas
+          return toHyperlinkIfDriveUrl(String(value));
         });
 
         // Append to sheet
@@ -82,6 +98,8 @@ export async function POST(request: NextRequest) {
           if (value === undefined || value === null) return '';
           if (Array.isArray(value)) return value.join(', ');
           if (typeof value === 'object') return JSON.stringify(value);
+          // Note: the Apps Script already converts Drive URLs to HYPERLINK
+          // formulas inside logToSpreadsheet, so we send raw values here.
           return String(value);
         });
 
