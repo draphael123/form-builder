@@ -46,7 +46,6 @@ export default function FormPage() {
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showDocumentsChecklist, setShowDocumentsChecklist] = useState(true);
-  const [revealedQuestions, setRevealedQuestions] = useState<Set<string>>(new Set());
   const formRef = useRef<HTMLFormElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
@@ -309,62 +308,6 @@ export default function FormPage() {
   const isLastPage = currentPage === totalPages - 1;
   const isFirstPage = currentPage === 0;
 
-  // Initialize first question as revealed when page changes (cascading form logic)
-  useEffect(() => {
-    if (currentSection) {
-      const visibleQuestions = currentSection.questions.filter(shouldShowQuestion);
-      if (visibleQuestions.length > 0) {
-        setRevealedQuestions(new Set([visibleQuestions[0].id]));
-      }
-    }
-  }, [currentPage, currentSection, shouldShowQuestion]);
-
-  // Reveal next question when current question is answered (cascading form logic)
-  useEffect(() => {
-    if (!currentSection) return;
-
-    const visibleQuestions = currentSection.questions.filter(shouldShowQuestion);
-    const newRevealed = new Set(revealedQuestions);
-    let changed = false;
-    let newlyRevealedId: string | null = null;
-
-    for (let i = 0; i < visibleQuestions.length; i++) {
-      const question = visibleQuestions[i];
-      const value = watchedValues[question.id];
-      const hasValue = value !== undefined && value !== null && value !== '' &&
-        (Array.isArray(value) ? value.length > 0 : true);
-
-      // If this question is revealed and has a value, reveal the next question
-      if (revealedQuestions.has(question.id) && hasValue && i < visibleQuestions.length - 1) {
-        const nextQuestion = visibleQuestions[i + 1];
-        if (!revealedQuestions.has(nextQuestion.id)) {
-          newRevealed.add(nextQuestion.id);
-          changed = true;
-          newlyRevealedId = nextQuestion.id;
-        }
-      }
-    }
-
-    if (changed) {
-      setRevealedQuestions(newRevealed);
-
-      // Auto-scroll to newly revealed question after animation starts
-      if (newlyRevealedId) {
-        setTimeout(() => {
-          const element = document.getElementById(`question-${newlyRevealedId}`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Focus the input in the new question
-            const input = element.querySelector<HTMLInputElement>(
-              'input:not([type="hidden"]), select, textarea'
-            );
-            input?.focus();
-          }
-        }, 100);
-      }
-    }
-  }, [watchedValues, currentSection, shouldShowQuestion, revealedQuestions]);
-
   // Time tracking hook
   const { getCompletionData, getElapsedTime } = useTimeTracking({
     formId: 'new-hire-form',
@@ -448,12 +391,9 @@ export default function FormPage() {
     });
   }, [trigger]);
 
-  // Render a question based on its type (with cascading support)
-  const renderQuestion = (question: Question, index: number) => {
+  // Render a question based on its type
+  const renderQuestion = (question: Question) => {
     if (!shouldShowQuestion(question)) return null;
-
-    // Only show if question is revealed (cascading logic)
-    if (!revealedQuestions.has(question.id)) return null;
 
     const commonProps = {
       register,
@@ -493,14 +433,7 @@ export default function FormPage() {
     })();
 
     return (
-      <div
-        key={question.id}
-        id={`question-${question.id}`}
-        className="relative cascade-question"
-        style={{
-          animationDelay: `${index * 0.05}s`,
-        }}
-      >
+      <div key={question.id} className="relative">
         {questionElement}
         {/* Field completion indicator */}
         {isComplete && question.required && (
@@ -1011,7 +944,7 @@ export default function FormPage() {
                     title={currentSection.title}
                     description={currentSection.description}
                   >
-                    {currentSection.questions.map((question, index) => renderQuestion(question, index))}
+                    {currentSection.questions.map((question) => renderQuestion(question))}
                   </FormSection>
                 </div>
               )}

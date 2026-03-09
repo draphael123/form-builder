@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
 
 :root {
   /* Blue & White Palette */
@@ -2091,72 +2091,4 @@ button:focus-visible,
   inset: 0;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
   animation: shimmer 1.5s infinite;
-}
-
-/* ============================================
-   CASCADING QUESTION ANIMATIONS
-   ============================================ */
-
-/* Cascading question reveal animation */
-@keyframes cascade-reveal {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-    max-height: 0;
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-    max-height: 500px;
-  }
-}
-
-.cascade-question {
-  animation: cascade-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-fill-mode: both;
-}
-
-/* Add subtle highlight to newly revealed questions */
-.cascade-question::before {
-  content: '';
-  position: absolute;
-  left: -1rem;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--color-terracotta), var(--color-terracotta-light));
-  border-radius: 2px;
-  opacity: 0;
-  animation: cascade-highlight 0.3s ease 0.3s forwards;
-}
-
-@keyframes cascade-highlight {
-  0% {
-    opacity: 0;
-    transform: scaleY(0);
-  }
-  100% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-}
-
-/* Fade out highlight after a moment */
-.cascade-question::before {
-  animation: cascade-highlight 0.3s ease 0.3s forwards,
-             cascade-highlight-fade 0.5s ease 2s forwards;
-}
-
-@keyframes cascade-highlight-fade {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-/* Ensure smooth scrolling when new questions appear */
-.cascade-question:last-child {
-  scroll-margin-bottom: 100px;
 }
