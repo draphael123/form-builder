@@ -358,7 +358,28 @@ export default function FormPage() {
     };
   }, [visibleSections, currentPage, shouldShowQuestion]);
 
-  const progressPercentage = (questionCounts.endOfCurrentPage / questionCounts.total) * 100;
+  // Calculate progress based on answered questions (starts at 0%)
+  const progressPercentage = useMemo(() => {
+    let totalQuestions = 0;
+    let answeredQuestions = 0;
+
+    visibleSections.forEach((section) => {
+      const visibleQuestions = section.questions.filter((q) => shouldShowQuestion(q));
+      totalQuestions += visibleQuestions.length;
+
+      visibleQuestions.forEach((q) => {
+        const value = watchedValues[q.id];
+        const hasValue = value !== undefined && value !== null && value !== '' &&
+          (Array.isArray(value) ? value.length > 0 : true);
+        if (hasValue) {
+          answeredQuestions++;
+        }
+      });
+    });
+
+    if (totalQuestions === 0) return 0;
+    return (answeredQuestions / totalQuestions) * 100;
+  }, [visibleSections, shouldShowQuestion, watchedValues]);
 
   // Estimate time remaining (roughly 2 minutes per section)
   const estimatedTimeRemaining = useMemo(() => {
