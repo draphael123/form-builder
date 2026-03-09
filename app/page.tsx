@@ -52,6 +52,7 @@ export default function FormPage() {
   const [pageDirection, setPageDirection] = useState<'forward' | 'backward'>('forward');
   const [announcement, setAnnouncement] = useState('');
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
+  const [hasAttemptedNavigation, setHasAttemptedNavigation] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showDocumentsChecklist, setShowDocumentsChecklist] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
@@ -496,6 +497,9 @@ export default function FormPage() {
 
   // Handle next page
   const handleNext = async () => {
+    // Mark that user has attempted to navigate (to show validation errors)
+    setHasAttemptedNavigation(true);
+
     const currentQuestions = currentSection.questions.filter(shouldShowQuestion);
     const fieldIds = currentQuestions.map((q) => q.id);
 
@@ -508,6 +512,7 @@ export default function FormPage() {
       } else {
         setPageDirection('forward');
         setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
+        setHasAttemptedNavigation(false); // Reset for new page
         announce(`Section ${currentPage + 2} of ${totalPages}: ${visibleSections[currentPage + 1]?.title}`);
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -525,6 +530,7 @@ export default function FormPage() {
   const handlePrevious = () => {
     setPageDirection('backward');
     setCurrentPage((prev) => Math.max(prev - 1, 0));
+    setHasAttemptedNavigation(false); // Reset for new page
     announce(`Section ${currentPage} of ${totalPages}: ${visibleSections[currentPage - 1]?.title}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -547,6 +553,7 @@ export default function FormPage() {
     }
     setPageDirection(targetIndex > currentPage ? 'forward' : 'backward');
     setCurrentPage(targetIndex);
+    setHasAttemptedNavigation(false); // Reset for new page
     announce(`Jumped to section ${targetIndex + 1}: ${visibleSections[targetIndex]?.title}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -555,6 +562,7 @@ export default function FormPage() {
   const handleEditFromReview = (sectionIndex: number) => {
     setShowReviewPage(false);
     setCurrentPage(sectionIndex);
+    setHasAttemptedNavigation(false); // Reset for new page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -958,8 +966,8 @@ export default function FormPage() {
             renderReviewPage()
           ) : (
             <>
-              {/* Error Summary */}
-              {currentPageErrors.length > 0 && (
+              {/* Error Summary - only show after user has attempted to navigate */}
+              {hasAttemptedNavigation && currentPageErrors.length > 0 && (
                 <div className="error-summary animate-fade-in" role="alert">
                   <div className="flex items-center justify-between mb-2">
                     <div className="error-summary-title mb-0">
