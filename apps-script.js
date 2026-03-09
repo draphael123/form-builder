@@ -129,48 +129,84 @@ function uploadFileToDrive(fileData) {
 // ===========================================
 
 function logToSpreadsheet(headers, row) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getActiveSheet();
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-  // VERTICAL FORMAT: Each field is a row
-  // Columns: Submission ID | Timestamp | Question | Answer
+  // Log to Sheet1 (Form Responses 1) - standard horizontal format
+  logToFormResponses(spreadsheet, headers, row);
 
-  // Add column headers if sheet is empty
+  // Log to Sheet2 - cascading vertical format for licensing team
+  logToCascadingSheet(spreadsheet, headers, row);
+}
+
+function logToFormResponses(spreadsheet, headers, row) {
+  let sheet = spreadsheet.getSheetByName('Form Responses 1');
+  if (!sheet) {
+    sheet = spreadsheet.getSheets()[0];
+  }
+
+  // Add headers if sheet is empty
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Submission ID', 'Timestamp', 'Question', 'Answer']);
-    // Format header row
-    sheet.getRange(1, 1, 1, 4).setFontWeight('bold');
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
     sheet.setFrozenRows(1);
   }
 
-  // Generate a unique submission ID
-  const submissionId = 'SUB-' + Utilities.formatDate(new Date(), 'America/New_York', 'yyyyMMdd-HHmmss');
-  const timestamp = row[0]; // First item is always timestamp
+  // Add the row data
+  sheet.appendRow(row);
+}
 
-  // Add each field as a separate row (skip timestamp since we have it in column B)
-  const rows = [];
-  for (var i = 1; i < headers.length; i++) {
-    var value = row[i] || '';
+function logToCascadingSheet(spreadsheet, headers, row) {
+  // Get or create Sheet2
+  let sheet = spreadsheet.getSheetByName('Sheet2');
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet('Sheet2');
+    // Set column widths
+    sheet.setColumnWidth(1, 350); // Question column
+    sheet.setColumnWidth(2, 500); // Answer column
+  }
 
-    // Skip empty values to keep sheet cleaner
-    if (value === '') continue;
+  const timestamp = row[0];
+  const startRow = sheet.getLastRow() + 1;
+
+  // Leave a blank row between submissions (except for first submission)
+  const dataStartRow = startRow > 1 ? startRow + 1 : startRow;
+
+  // Build the cascading rows: Question | Answer
+  const cascadingRows = [];
+
+  for (var i = 0; i < headers.length; i++) {
+    var value = row[i];
+
+    // Skip empty values
+    if (value === undefined || value === null || value === '') continue;
+
+    // Convert to string for processing
+    var displayValue = String(value);
 
     // Convert Google Drive URLs to clickable hyperlinks
-    if (typeof value === 'string' && value.includes('drive.google.com')) {
-      value = '=HYPERLINK("' + value + '", "📎 Click to View")';
+    if (displayValue.includes('drive.google.com')) {
+      displayValue = '=HYPERLINK("' + displayValue + '", "📎 Click to View File")';
     }
 
-    rows.push([submissionId, timestamp, headers[i], value]);
+    cascadingRows.push([headers[i], displayValue]);
   }
 
-  // Append all rows at once (more efficient)
-  if (rows.length > 0) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 4).setValues(rows);
+  // Write all rows at once
+  if (cascadingRows.length > 0) {
+    const range = sheet.getRange(dataStartRow, 1, cascadingRows.length, 2);
+    range.setValues(cascadingRows);
+
+    // Apply yellow highlighting to the entire submission block
+    range.setBackground('#FFFF00');
+
+    // Make question labels bold
+    sheet.getRange(dataStartRow, 1, cascadingRows.length, 1).setFontWeight('bold');
+
+    // Add border around the submission block
+    range.setBorder(true, true, true, true, false, false, '#999999', SpreadsheetApp.BorderStyle.SOLID);
   }
 
-  // Add a blank row to separate submissions
-  sheet.appendRow(['---', '---', '---', '---']);
-
-  Logger.log('Submission ' + submissionId + ' logged with ' + rows.length + ' fields');
+  Logger.log('Cascading format logged to Sheet2 with ' + cascadingRows.length + ' fields');
 }
 
 // ===========================================
