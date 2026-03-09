@@ -19,6 +19,7 @@ export function SectionOverview({
   const completedCount = visibleQuestions.filter((q) => completedFields.has(q.id)).length;
   const totalCount = visibleQuestions.length;
   const requiredCount = visibleQuestions.filter((q) => q.required).length;
+  const estimatedMinutes = section.estimatedMinutes;
 
   return (
     <div className="section-overview">
@@ -33,6 +34,14 @@ export function SectionOverview({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
           {totalCount} questions in this section ({requiredCount} required)
+          {estimatedMinutes && (
+            <span className="section-time-estimate">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ~{estimatedMinutes} min
+            </span>
+          )}
         </span>
         <span className="flex items-center gap-2">
           <span className="text-[var(--color-sage)]">{completedCount}/{totalCount}</span>

@@ -119,6 +119,7 @@ export interface FormSection {
   title: string;
   description?: string;
   questions: Question[];
+  estimatedMinutes?: number; // Estimated time to complete this section in minutes
 }
 
 // Complete form configuration

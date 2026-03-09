@@ -29,6 +29,13 @@ import { DocumentsChecklist } from '@/components/DocumentsChecklist';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import { SectionOverview } from '@/components/SectionOverview';
 import { SessionTimeoutWarning } from '@/components/SessionTimeoutWarning';
+import { AutoSaveIndicator } from '@/components/AutoSaveIndicator';
+import { MilestoneCelebration } from '@/components/MilestoneCelebration';
+import { MiniProgressMap } from '@/components/MiniProgressMap';
+import { TimeSpentTracker } from '@/components/TimeSpentTracker';
+import { FieldCompletionCounter } from '@/components/FieldCompletionCounter';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
+import { SkipToReviewButton } from '@/components/SkipToReviewButton';
 
 export default function FormPage() {
   const router = useRouter();
@@ -40,6 +47,7 @@ export default function FormPage() {
   const [saveEmail, setSaveEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [formStartTime] = useState(() => new Date());
   const [showReviewPage, setShowReviewPage] = useState(false);
   const [pageDirection, setPageDirection] = useState<'forward' | 'backward'>('forward');
   const [announcement, setAnnouncement] = useState('');
@@ -106,6 +114,7 @@ export default function FormPage() {
   const {
     hasDraft,
     lastSavedText,
+    isSaving: isAutoSaving,
     restoreDraft,
     clearDraft,
   } = useFormAutoSave({
@@ -760,6 +769,27 @@ export default function FormPage() {
       {/* Session timeout warning */}
       <SessionTimeoutWarning timeoutMinutes={30} warningMinutes={5} />
 
+      {/* Milestone Celebration */}
+      <MilestoneCelebration progress={progressPercentage} />
+
+      {/* Mini Progress Map - Desktop only */}
+      <MiniProgressMap
+        sections={visibleSections}
+        currentPage={currentPage}
+        completedSections={completedSections}
+        onSectionClick={handleSectionJump}
+      />
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        isFirstPage={currentPage === 0}
+        isLastPage={currentPage === totalPages - 1}
+        showReviewPage={showReviewPage}
+        progress={progressPercentage}
+      />
+
       <div className="max-w-2xl mx-auto">
         {/* Draft Restore Banner */}
         {showDraftBanner && (
@@ -845,6 +875,14 @@ export default function FormPage() {
                       aria-current={isActive ? 'step' : undefined}
                       aria-label={`${section.title}${isCompleted ? ' (completed)' : ''}${isActive ? ' (current)' : ''}`}
                     >
+                      {/* Section Preview Tooltip */}
+                      <div className="section-preview-tooltip">
+                        <div>{section.title}</div>
+                        <div className="section-preview-questions">
+                          {section.questions.filter(shouldShowQuestion).length} questions
+                          {section.estimatedMinutes && ` · ~${section.estimatedMinutes} min`}
+                        </div>
+                      </div>
                       <span className="stepper-number">
                         {isCompleted ? (
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -884,7 +922,9 @@ export default function FormPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* Time spent tracker */}
+                  <TimeSpentTracker startTime={formStartTime} />
                   {/* Estimated time remaining */}
                   <span className="flex items-center gap-1.5 text-xs text-[var(--color-warm-gray)] bg-[var(--color-parchment)] px-2 py-1 rounded-full">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -892,17 +932,16 @@ export default function FormPage() {
                     </svg>
                     {estimatedTimeRemaining}
                   </span>
-                  {lastSavedText && (
-                    <span className="flex items-center gap-1.5 text-xs text-[var(--color-sage)]">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      {lastSavedText}
-                    </span>
-                  )}
+                  {/* Auto-save indicator */}
+                  <AutoSaveIndicator isSaving={isAutoSaving} lastSavedText={lastSavedText} />
                   <span className="text-sm font-medium text-[var(--color-charcoal)]">
                     {Math.round(progressPercentage)}%
                   </span>
+                  {/* Skip to review button */}
+                  <SkipToReviewButton
+                    progress={progressPercentage}
+                    onSkip={() => setShowReviewPage(true)}
+                  />
                 </div>
               </div>
 
@@ -922,11 +961,23 @@ export default function FormPage() {
               {/* Error Summary */}
               {currentPageErrors.length > 0 && (
                 <div className="error-summary animate-fade-in" role="alert">
-                  <div className="error-summary-title">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Please fix {currentPageErrors.length} error{currentPageErrors.length > 1 ? 's' : ''} before continuing
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="error-summary-title mb-0">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Please fix {currentPageErrors.length} error{currentPageErrors.length > 1 ? 's' : ''} before continuing
+                    </div>
+                    <button
+                      type="button"
+                      className="jump-to-error-btn"
+                      onClick={() => document.getElementById(currentPageErrors[0]?.id)?.focus()}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                      </svg>
+                      Jump to first error
+                    </button>
                   </div>
                   <ul className="error-summary-list">
                     {currentPageErrors.map((error) => (
@@ -949,6 +1000,28 @@ export default function FormPage() {
                   key={currentSection.id}
                   className={`page-transition ${pageDirection === 'forward' ? 'page-slide-enter-active' : 'page-slide-enter-active'}`}
                 >
+                  {/* Sticky Section Header */}
+                  <div className="sticky-section-header">
+                    <span className="sticky-section-title">{currentSection.title}</span>
+                    <div className="sticky-section-meta">
+                      {currentSection.estimatedMinutes && (
+                        <span className="section-time-estimate">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          ~{currentSection.estimatedMinutes} min
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Field Completion Counter */}
+                  <FieldCompletionCounter
+                    completed={currentSection.questions.filter(shouldShowQuestion).filter((q) => isFieldComplete(q.id)).length}
+                    total={currentSection.questions.filter(shouldShowQuestion).length}
+                    required={currentSection.questions.filter(shouldShowQuestion).filter((q) => q.required).length}
+                  />
+
                   {/* Section Overview */}
                   <SectionOverview
                     section={currentSection}

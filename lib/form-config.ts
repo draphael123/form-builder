@@ -10,6 +10,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'demographic-info',
       title: 'Fountain Onboarding: New Hire Information',
       description: 'Demographic / Personal Information',
+      estimatedMinutes: 5,
       questions: [
         {
           id: 'fullLegalName',
@@ -158,6 +159,7 @@ export const newHireFormConfig: FormConfig = {
     {
       id: 'other-names-section',
       title: 'If Yes: Other Names Used',
+      estimatedMinutes: 1,
       questions: [
         {
           id: 'nameChangeDocuments',
@@ -177,6 +179,7 @@ export const newHireFormConfig: FormConfig = {
     {
       id: 'languages-section',
       title: 'Languages',
+      estimatedMinutes: 1,
       questions: [
         {
           id: 'speaksOtherLanguages',
@@ -204,6 +207,7 @@ export const newHireFormConfig: FormConfig = {
     {
       id: 'clinical-question',
       title: 'Clinical Staff Check',
+      estimatedMinutes: 1,
       questions: [
         {
           id: 'isClinicalStaff',
@@ -222,6 +226,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'non-clinical-signature',
       title: 'Certification / Signature (Non-Clinical Staff)',
       description: 'By submitting this form, I certify that the information provided above is accurate, complete, and truthful to the best of my knowledge.',
+      estimatedMinutes: 1,
       questions: [
         {
           id: 'printedName',
@@ -251,6 +256,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'licensing-info',
       title: 'Licensing & Certifications Information (Clinical Staff)',
       description: 'For clinical staff (MD, DO, NP, RN) only. Please list all licenses, certificates, and any legal / disciplinary history and upload required documents.',
+      estimatedMinutes: 8,
       questions: [
         {
           id: 'maidenName',
@@ -518,6 +524,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'education-section',
       title: 'Education & Training',
       description: 'Format: School (City, State) / Program Name (Month & Year Attended) Completed: Month & Year\n\nExample:\nLincoln Middle School (Fort Collins, Colorado) (9/2005 – 6/2008) Completed: 6/2008',
+      estimatedMinutes: 5,
       questions: [
         {
           id: 'middleSchool',
@@ -576,6 +583,7 @@ export const newHireFormConfig: FormConfig = {
     {
       id: 'work-history',
       title: 'Work History Entry',
+      estimatedMinutes: 3,
       questions: [
         {
           id: 'employerPracticeName',
@@ -635,6 +643,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'legal-disciplinary',
       title: 'License, Legal, or Disciplinary History',
       description: 'Please answer Yes or No to each question. If you answer Yes provide a brief explanation.',
+      estimatedMinutes: 3,
       questions: [
         {
           id: 'convictedOfCrime',
@@ -742,6 +751,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'health-questions',
       title: 'Health Questions',
       description: 'Please answer Yes or No to each question. If you answer Yes provide a brief explanation',
+      estimatedMinutes: 2,
       questions: [
         {
           id: 'medicalConditionImpairAbility',
@@ -837,6 +847,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'professional-references',
       title: 'Professional Reference',
       description: 'Please provide the following information for three professional references:\nFormat: Name, Title/Specialty, Phone, Email, and Known From–To (MM/YY)\n\nExample:\nDr. Jane Smith – Medical Director – (123) 456-7890 – jane.smith@email.com – 01/2020 to 07/2023',
+      estimatedMinutes: 4,
       questions: [
         {
           id: 'professionalReference1',
@@ -873,6 +884,7 @@ export const newHireFormConfig: FormConfig = {
     {
       id: 'physical-description',
       title: 'Physical Description',
+      estimatedMinutes: 1,
       questions: [
         {
           id: 'eyeColor',
@@ -920,6 +932,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'md-do-section',
       title: 'MD or DO Section',
       description: 'If you are an MD or DO, please select Yes in the section below.',
+      estimatedMinutes: 1,
       questions: [
         {
           id: 'isMDorDO',
@@ -941,6 +954,7 @@ export const newHireFormConfig: FormConfig = {
     {
       id: 'np-rn-section',
       title: 'NP or RN Section',
+      estimatedMinutes: 2,
       questions: [
         {
           id: 'nursysLicenseUpload',
@@ -976,6 +990,7 @@ export const newHireFormConfig: FormConfig = {
       id: 'clinical-signature',
       title: 'Certification / Signature (Clinical Staff)',
       description: 'By submitting this form, I certify that the information provided above is accurate, complete, and truthful to the best of my knowledge.',
+      estimatedMinutes: 2,
       questions: [
         {
           id: 'printedNameClinical',

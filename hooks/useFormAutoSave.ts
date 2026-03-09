@@ -24,6 +24,7 @@ export function useFormAutoSave({ formId, watch, reset, onRestore }: AutoSaveOpt
   const [hasDraft, setHasDraft] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialLoadDone = useRef(false);
 
@@ -131,9 +132,14 @@ export function useFormAutoSave({ formId, watch, reset, onRestore }: AutoSaveOpt
         clearTimeout(timeoutRef.current);
       }
 
+      // Show saving indicator
+      setIsSaving(true);
+
       // Set new timeout for debounced save
       timeoutRef.current = setTimeout(() => {
         saveDraft(data as Record<string, unknown>);
+        // Hide saving indicator after a brief moment to show the saved state
+        setTimeout(() => setIsSaving(false), 500);
       }, DEBOUNCE_MS);
     });
 
@@ -170,6 +176,7 @@ export function useFormAutoSave({ formId, watch, reset, onRestore }: AutoSaveOpt
     hasDraft,
     lastSaved,
     lastSavedText: getLastSavedText(),
+    isSaving,
     saveDraft,
     restoreDraft,
     clearDraft,
