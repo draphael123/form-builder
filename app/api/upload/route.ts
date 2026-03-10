@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try Apps Script upload (preferred method - uses Google Drive)
+    // Use Apps Script for Google Drive upload
     const appsScriptUrl = process.env.APPS_SCRIPT_WEB_APP_URL;
     if (appsScriptUrl) {
       try {
@@ -49,8 +49,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback: Return as data URL (works but not ideal for large files)
-    // This allows the form to work even if Apps Script isn't configured
+    // Fallback: Return as data URL
     const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${fileBase64}`;
 
     return NextResponse.json({
