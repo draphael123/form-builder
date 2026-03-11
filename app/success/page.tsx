@@ -18,6 +18,7 @@ function useConfetti() {
 
 function SuccessContent() {
   const searchParams = useSearchParams();
+  const submissionId = searchParams.get('id');
   const { startConfetti } = useConfetti();
 
   // Start confetti on mount
