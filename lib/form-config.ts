@@ -255,7 +255,7 @@ export const newHireFormConfig: FormConfig = {
     {
       id: 'licensing-info',
       title: 'Licensing & Certifications Information (Clinical Staff)',
-      description: 'For clinical staff (MD, DO, NP, RN) only. Please list all licenses, certificates, and any legal / disciplinary history and upload required documents.',
+      description: 'For clinical staff (MD, DO, NP, RN) only. If you are not an MD, DO, NP, or RN, please enter "N/A" for questions that do not apply to you.',
       estimatedMinutes: 8,
       questions: [
         {
@@ -574,7 +574,7 @@ export const newHireFormConfig: FormConfig = {
           label: 'Please list all internships, residencies, and fellowships in chronological order.',
           required: true,
           showWhen: {
-            field: 'isClinicalStaff',
+            field: 'isMDorDO',
             equals: 'Yes',
           },
         },

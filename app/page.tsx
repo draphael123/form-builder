@@ -30,7 +30,6 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 import { SectionOverview } from '@/components/SectionOverview';
 import { SessionTimeoutWarning } from '@/components/SessionTimeoutWarning';
 import { AutoSaveIndicator } from '@/components/AutoSaveIndicator';
-import { MilestoneCelebration } from '@/components/MilestoneCelebration';
 import { MiniProgressMap } from '@/components/MiniProgressMap';
 import { TimeSpentTracker } from '@/components/TimeSpentTracker';
 import { FieldCompletionCounter } from '@/components/FieldCompletionCounter';
@@ -776,9 +775,6 @@ export default function FormPage() {
 
       {/* Session timeout warning */}
       <SessionTimeoutWarning timeoutMinutes={30} warningMinutes={5} />
-
-      {/* Milestone Celebration */}
-      <MilestoneCelebration progress={progressPercentage} />
 
       {/* Mini Progress Map - Desktop only */}
       <MiniProgressMap

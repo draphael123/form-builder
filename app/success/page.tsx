@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useEffect, useCallback, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { newHireFormConfig } from '@/lib/form-config';
@@ -18,8 +18,6 @@ function useConfetti() {
 
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const submissionId = searchParams.get('id');
-  const [isDownloading, setIsDownloading] = useState(false);
   const { startConfetti } = useConfetti();
 
   // Start confetti on mount
@@ -29,47 +27,6 @@ function SuccessContent() {
       description: 'You will receive a confirmation email shortly.',
     });
   }, [startConfetti]);
-
-  const handleDownloadPDF = async () => {
-    if (!submissionId) return;
-
-    setIsDownloading(true);
-    const loadingToast = toast.loading('Generating PDF...');
-
-    try {
-      const response = await fetch(`/api/submissions/${submissionId}/pdf`);
-
-      if (!response.ok) {
-        throw new Error('Failed to download PDF');
-      }
-
-      const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = 'submission.pdf';
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename="(.+)"/);
-        if (match) {
-          filename = match[1];
-        }
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast.success('PDF downloaded!', { id: loadingToast });
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      toast.error('Failed to download PDF. Please try again.', { id: loadingToast });
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -179,29 +136,6 @@ function SuccessContent() {
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            {/* PDF Download Button */}
-            {submissionId && (
-              <button
-                onClick={handleDownloadPDF}
-                disabled={isDownloading}
-                className="btn btn-secondary w-full"
-              >
-                {isDownloading ? (
-                  <>
-                    <span className="spinner" style={{ borderColor: 'rgba(0,0,0,0.2)', borderTopColor: 'currentColor' }} />
-                    Generating PDF...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download PDF Copy
-                  </>
-                )}
-              </button>
-            )}
-
             {/* Submit Another */}
             <Link href="/" className="btn btn-primary w-full">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
