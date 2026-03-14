@@ -44,7 +44,16 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AccessibilityProvider>
-            {children}
+            {/* Skip to main content link for accessibility */}
+            <a
+              href="#main-content"
+              className="skip-link"
+            >
+              Skip to main content
+            </a>
+            <main id="main-content">
+              {children}
+            </main>
             <Toaster
               position="bottom-right"
               toastOptions={{

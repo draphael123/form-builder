@@ -2783,3 +2783,109 @@ button:focus-visible,
   background: #FEE2E2;
   color: #DC2626;
 }
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.skip-link:focus {
+  position: fixed;
+  left: 50%;
+  top: 1rem;
+  transform: translateX(-50%);
+  width: auto;
+  height: auto;
+  padding: 1rem 2rem;
+  background: var(--color-charcoal);
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: var(--shadow-warm-lg);
+  text-decoration: none;
+  outline: 3px solid var(--color-terracotta);
+  outline-offset: 2px;
+}
+
+/* Minimum touch targets (44px) */
+button,
+[role="button"],
+input[type="checkbox"],
+input[type="radio"],
+.btn,
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Ensure clickable areas are large enough */
+input[type="checkbox"] + label,
+input[type="radio"] + label {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 3px solid var(--color-terracotta);
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-cream: #FFFFFF;
+    --color-charcoal: #000000;
+    --color-warm-gray: #333333;
+  }
+
+  .form-card {
+    border: 2px solid var(--color-charcoal);
+  }
+
+  .btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Live region announcements */
+[aria-live] {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
