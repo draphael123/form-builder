@@ -31,7 +31,6 @@ import { SectionOverview } from '@/components/SectionOverview';
 import { SessionTimeoutWarning } from '@/components/SessionTimeoutWarning';
 import { AutoSaveIndicator } from '@/components/AutoSaveIndicator';
 import { MiniProgressMap } from '@/components/MiniProgressMap';
-import { TimeSpentTracker } from '@/components/TimeSpentTracker';
 import { FieldCompletionCounter } from '@/components/FieldCompletionCounter';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { SkipToReviewButton } from '@/components/SkipToReviewButton';
@@ -760,21 +759,6 @@ export default function FormPage() {
 
   return (
     <div className="min-h-screen py-8 px-4 sm:py-12 sm:px-6 relative">
-      {/* Admin link to Google Sheet */}
-      <a
-        href="https://docs.google.com/spreadsheets/d/1etgBQL9BjxFVVN4JYHN9a_6IfQr41gj8aDMrt6gpT_Y"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[var(--color-warm-gray)] hover:text-[var(--color-charcoal)] bg-white/80 backdrop-blur-sm border border-[var(--color-warm-gray)]/20 rounded-full shadow-sm hover:shadow transition-all"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 11V9h-6V3H11v6H3v2h8v8h2v-8h8z" fill="none"/>
-          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2zM18 20H6V4h7v4h5v12z"/>
-          <path d="M8 12h8v2H8zm0 4h8v2H8zm0-8h3v2H8z" fill="#0F9D58"/>
-        </svg>
-        Admins only!
-      </a>
-
       {/* Floating progress bar */}
       <FloatingProgressBar progress={progressPercentage} />
 
@@ -944,8 +928,6 @@ export default function FormPage() {
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap">
-                  {/* Time spent tracker */}
-                  <TimeSpentTracker startTime={formStartTime} />
                   {/* Estimated time remaining */}
                   <span className="flex items-center gap-1.5 text-xs text-[var(--color-warm-gray)] bg-[var(--color-parchment)] px-2 py-1 rounded-full">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

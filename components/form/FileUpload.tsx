@@ -20,6 +20,45 @@ interface UploadedFile {
   fileType?: string;
 }
 
+// Convert MIME types and extensions to human-readable format
+function formatAcceptedTypes(accept: string[] | undefined): string {
+  if (!accept || accept.length === 0) return 'Any file type';
+
+  const typeMap: Record<string, string> = {
+    '.pdf': 'PDF',
+    '.doc': 'DOC',
+    '.docx': 'DOCX',
+    '.jpg': 'JPG',
+    '.jpeg': 'JPEG',
+    '.png': 'PNG',
+    'application/pdf': 'PDF',
+    'application/msword': 'DOC',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+    'image/*': 'Images',
+    'image/jpeg': 'JPG',
+    'image/png': 'PNG',
+  };
+
+  const uniqueTypes = new Set<string>();
+  accept.forEach(type => {
+    const mapped = typeMap[type];
+    if (mapped) {
+      uniqueTypes.add(mapped);
+    }
+  });
+
+  // If we mapped some types, return them; otherwise show simplified list
+  if (uniqueTypes.size > 0) {
+    // Remove redundant types (e.g., if we have "Images" and "JPG", keep just the specific ones)
+    if (uniqueTypes.has('Images') && (uniqueTypes.has('JPG') || uniqueTypes.has('PNG'))) {
+      uniqueTypes.delete('Images');
+    }
+    return Array.from(uniqueTypes).join(', ');
+  }
+
+  return 'Any file type';
+}
+
 export function FileUpload({ question, register, errors, watch, setValue }: FileUploadProps) {
   const error = errors[question.id];
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
@@ -29,9 +68,13 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
 
   const acceptString = question.accept?.join(',') || '*';
   const maxSizeMB = question.maxSize || 10;
+  const humanReadableTypes = formatAcceptedTypes(question.accept);
 
   // Get submitter name from form for file naming
-  const submitterName = watch('fullLegalName') as string || watch('printedName') as string || undefined;
+  const firstName = watch('firstName') as string || '';
+  const lastName = watch('lastName') as string || '';
+  const printedName = watch('printedName') as string || '';
+  const submitterName = (firstName && lastName) ? `${firstName} ${lastName}` : printedName || undefined;
 
   const uploadFile = useCallback(async (file: File) => {
     setIsUploading(true);
@@ -127,13 +170,13 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
       });
 
       if (!isValidType) {
-        setUploadError(`Please upload a file of type: ${question.accept.join(', ')}`);
+        setUploadError(`Please upload a file of type: ${humanReadableTypes}`);
         return;
       }
     }
 
     uploadFile(file);
-  }, [maxSizeMB, question.accept, question.id, setValue, uploadFile]);
+  }, [maxSizeMB, question.accept, question.id, setValue, uploadFile, humanReadableTypes]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -316,7 +359,7 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
               <span> or drag it here</span>
             </div>
             <p className="text-xs text-[var(--color-warm-gray-light)]">
-              {question.accept?.join(', ') || 'Any file type'} up to {maxSizeMB}MB
+              {humanReadableTypes} up to {maxSizeMB}MB
             </p>
           </div>
         )}

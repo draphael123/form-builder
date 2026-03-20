@@ -67,6 +67,7 @@ export interface DropdownQuestion extends BaseQuestion {
 
 export interface DateQuestion extends BaseQuestion {
   type: 'date';
+  placeholder?: string;
   minDate?: string;
   maxDate?: string;
   validationType?: 'birthDate' | 'signatureDate' | 'pastDate';
