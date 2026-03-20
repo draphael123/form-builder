@@ -3,7 +3,8 @@ import { saveDraft, getDraftByToken, deleteDraft, generateContinueLink } from '@
 import { Resend } from 'resend';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+// TODO: Update FROM_EMAIL once the email alias onboarding@fountainvitality.com is created and verified
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@fountainvitality.com';
 
 // POST - Save draft and send continue link
 export async function POST(request: NextRequest) {

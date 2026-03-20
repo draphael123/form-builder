@@ -11,7 +11,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const FROM_EMAIL = process.env.SMTP_USER || 'noreply@fountain.net';
+// TODO: Update FROM_EMAIL once the email alias onboarding@fountainvitality.com is created and verified
+const FROM_EMAIL = process.env.SMTP_USER || 'onboarding@fountainvitality.com';
 const HR_NOTIFICATION_EMAILS = ['daniel@fountain.net', 'tammy.hale@fountain.net'];
 
 interface SubmissionEmailData {

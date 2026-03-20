@@ -52,13 +52,13 @@ export function validateBirthDate(value: string): string | true {
   const oldCheck = validateDateNotTooOld(value, 120);
   if (oldCheck !== true) return oldCheck;
 
-  // Check minimum age (e.g., 16 for employment)
+  // Check minimum age (18 for employment)
   const date = new Date(value);
   const minAgeDate = new Date();
-  minAgeDate.setFullYear(minAgeDate.getFullYear() - 16);
+  minAgeDate.setFullYear(minAgeDate.getFullYear() - 18);
 
   if (date > minAgeDate) {
-    return 'Must be at least 16 years old';
+    return 'Must be at least 18 years old';
   }
 
   return true;

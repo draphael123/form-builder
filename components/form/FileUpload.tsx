@@ -247,17 +247,30 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
               {uploadedFile.fileName}
             </p>
             <div className="flex items-center justify-center gap-4">
-              <a
-                href={uploadedFile.webViewLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-[var(--color-terracotta)] hover:text-[var(--color-terracotta-dark)] flex items-center gap-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-                View file
-              </a>
+              {uploadedFile.webViewLink?.startsWith('data:') ? (
+                <a
+                  href={uploadedFile.webViewLink}
+                  download={uploadedFile.fileName}
+                  className="text-sm text-[var(--color-terracotta)] hover:text-[var(--color-terracotta-dark)] flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download file
+                </a>
+              ) : (
+                <a
+                  href={uploadedFile.webViewLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-[var(--color-terracotta)] hover:text-[var(--color-terracotta-dark)] flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  View file
+                </a>
+              )}
               <button
                 type="button"
                 onClick={removeFile}

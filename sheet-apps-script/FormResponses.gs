@@ -1,24 +1,33 @@
 /**
- * Form Builder - Append incoming submissions to this sheet.
- * 1. In your Google Sheet: Extensions → Apps Script
- * 2. Paste this entire file, save, then Deploy → New deployment → Web app
- * 3. Execute as: Me, Who has access: Anyone
- * 4. Copy the Web app URL into .env as APPS_SCRIPT_WEB_APP_URL
+ * DEPRECATED - This file is no longer maintained.
+ *
+ * Please use the main Apps Script file instead:
+ *   - Source: ../apps-script.js
+ *   - Clasp deployment: ../clasp-project/Code.js
+ *
+ * The main script includes:
+ *   - File upload support
+ *   - Email notifications (confirmation + HR)
+ *   - Reminder emails
+ *   - Cascading sheet format (Sheet2)
+ *   - Better error handling and input validation
+ *   - Configurable settings
+ *
+ * This file is kept for reference only.
  */
 
-/**
- * Convert a Google Drive / Docs URL into a =HYPERLINK() formula so it
- * renders as a clickable link in the spreadsheet cell.
- */
+// ===========================================
+// LEGACY CODE - DO NOT USE
+// ===========================================
+
 function toHyperlinkIfDriveUrl(value) {
   if (
     typeof value === 'string' &&
     (value.indexOf('drive.google.com') !== -1 ||
       value.indexOf('docs.google.com') !== -1)
   ) {
-    // Escape any double-quotes inside the URL (rare but safe)
     var safeUrl = value.replace(/"/g, '""');
-    return '=HYPERLINK("' + safeUrl + '", "📎 Click to View")';
+    return '=HYPERLINK("' + safeUrl + '", "View File")';
   }
   return value;
 }
@@ -35,7 +44,6 @@ function doPost(e) {
     }
 
     if (row.length > 0) {
-      // Convert any Drive URLs in the row to clickable HYPERLINK formulas
       var processedRow = row.map(function(value) {
         return toHyperlinkIfDriveUrl(value);
       });

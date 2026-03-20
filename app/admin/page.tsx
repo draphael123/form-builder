@@ -566,6 +566,14 @@ export default function AdminPage() {
                             >
                               View File
                             </a>
+                          ) : String(value).startsWith('data:') ? (
+                            <a
+                              href={String(value)}
+                              download={`attachment-${key}`}
+                              className="text-blue-600 hover:underline"
+                            >
+                              Download File
+                            </a>
                           ) : (
                             String(value)
                           )}

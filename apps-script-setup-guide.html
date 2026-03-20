@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apps Script Setup Guide</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      font-size: 14px;
+    }
+    h1 {
+      color: #2563eb;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 10px;
+      font-size: 24px;
+    }
+    h2 {
+      color: #1e40af;
+      margin-top: 30px;
+      font-size: 18px;
+      border-left: 4px solid #2563eb;
+      padding-left: 12px;
+    }
+    h3 {
+      color: #374151;
+      font-size: 15px;
+      margin-top: 20px;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+    }
+    pre {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    ol, ul {
+      padding-left: 24px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+    }
+    .note {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .step-number {
+      display: inline-block;
+      background: #2563eb;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 28px;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    @media print {
+      body { padding: 20px; }
+      h2 { page-break-after: avoid; }
+      pre { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Google Apps Script Setup Guide</h1>
+  <p><strong>Fountain Onboarding Form Builder</strong></p>
+
+  <h2><span class="step-number">1</span> Create the Apps Script Project</h2>
+  <ol>
+    <li>Go to <strong>script.google.com</strong></li>
+    <li>Click <strong>New Project</strong></li>
+    <li>Delete the default code in <code>Code.gs</code></li>
+    <li>Copy the entire contents of <code>apps-script.js</code> and paste it</li>
+    <li>Click <strong>File &gt; Save</strong> (Ctrl+S), name it "Fountain Onboarding"</li>
+  </ol>
+
+  <h2><span class="step-number">2</span> Configure Your Settings</h2>
+  <p>Find the <code>CONFIG</code> section at the top (~line 36) and update:</p>
+  <pre><code>const CONFIG = {
+  // Your Google Sheet ID (from the URL)
+  SPREADSHEET_ID: 'your-spreadsheet-id-here',
+
+  // Emails for new hire notifications
+  HR_EMAILS: ['hr@yourcompany.com'],
+
+  // Your Vercel app URL
+  APP_URL: 'https://your-app.vercel.app',
+
+  // Leave empty to auto-create folder
+  UPLOADS_FOLDER_ID: '',
+
+  HYPERLINK_TEXT: 'View File'
+};</code></pre>
+
+  <h3>Finding Your Spreadsheet ID</h3>
+  <p>Open your Google Sheet and copy the ID from the URL:</p>
+  <pre><code>https://docs.google.com/spreadsheets/d/<strong>THIS_IS_YOUR_ID</strong>/edit</code></pre>
+
+  <h2><span class="step-number">3</span> Authorize the Script</h2>
+  <ol>
+    <li>In the Apps Script editor, select <code>authorizeAndTest</code> from the dropdown</li>
+    <li>Click <strong>Run</strong></li>
+    <li>Click <strong>Review Permissions</strong> in the popup</li>
+    <li>Select your Google account</li>
+    <li>Click <strong>Advanced</strong> &gt; <strong>Go to Fountain Onboarding (unsafe)</strong></li>
+    <li>Click <strong>Allow</strong></li>
+  </ol>
+
+  <h2><span class="step-number">4</span> Deploy as Web App</h2>
+  <ol>
+    <li>Click <strong>Deploy</strong> &gt; <strong>New deployment</strong></li>
+    <li>Click the gear icon, select <strong>Web app</strong></li>
+    <li>Configure:
+      <ul>
+        <li><strong>Execute as:</strong> Me</li>
+        <li><strong>Who has access:</strong> Anyone</li>
+      </ul>
+    </li>
+    <li>Click <strong>Deploy</strong></li>
+    <li><strong>Copy the Web App URL</strong></li>
+  </ol>
+
+  <h2><span class="step-number">5</span> Add URL to Your App</h2>
+  <p>Add the Web App URL to your Vercel environment variables:</p>
+  <pre><code>APPS_SCRIPT_WEB_APP_URL=https://script.google.com/macros/s/xxxxx/exec</code></pre>
+
+  <h2><span class="step-number">6</span> Test Your Setup</h2>
+  <p>Run these functions in the Apps Script editor to verify:</p>
+  <table>
+    <tr>
+      <th>Function</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td><code>validateConfig()</code></td>
+      <td>Check all settings are configured</td>
+    </tr>
+    <tr>
+      <td><code>testSpreadsheet()</code></td>
+      <td>Add a test row to your sheet</td>
+    </tr>
+    <tr>
+      <td><code>testEmail()</code></td>
+      <td>Send test confirmation emails</td>
+    </tr>
+    <tr>
+      <td><code>testFileUpload()</code></td>
+      <td>Upload a test file to Drive</td>
+    </tr>
+  </table>
+
+  <h2>Troubleshooting</h2>
+  <table>
+    <tr>
+      <th>Issue</th>
+      <th>Solution</th>
+    </tr>
+    <tr>
+      <td>Permission denied</td>
+      <td>Re-run <code>authorizeAndTest()</code></td>
+    </tr>
+    <tr>
+      <td>Emails not sending</td>
+      <td>Verify HR_EMAILS has valid addresses</td>
+    </tr>
+    <tr>
+      <td>Files not uploading</td>
+      <td>Run <code>getUploadsFolderInfo()</code> to check access</td>
+    </tr>
+    <tr>
+      <td>Spreadsheet errors</td>
+      <td>Verify SPREADSHEET_ID is correct</td>
+    </tr>
+  </table>
+
+  <div class="note">
+    <strong>Need the uploads folder ID?</strong> Run <code>getUploadsFolderInfo()</code> after the first file upload to get the auto-created folder's ID.
+  </div>
+
+</body>
+</html>

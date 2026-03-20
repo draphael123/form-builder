@@ -208,19 +208,36 @@ export default function FormPage() {
     const restored = localStorage.getItem('form-draft-restore');
     if (restored) {
       try {
-        const { data, currentPage: page } = JSON.parse(restored);
+        const { data, currentPage: page, token } = JSON.parse(restored);
+        // Restore form values (skip file fields as they can't be serialized)
         Object.entries(data).forEach(([key, value]) => {
-          setValue(key, value);
+          if (value !== null && value !== undefined && typeof value !== 'object') {
+            setValue(key, value);
+          } else if (Array.isArray(value)) {
+            // Handle array values (like checkbox selections)
+            setValue(key, value);
+          }
         });
-        if (page !== undefined) {
-          setCurrentPage(page);
+        // Set page after a brief delay to ensure form is ready
+        if (page !== undefined && typeof page === 'number') {
+          setTimeout(() => {
+            setCurrentPage(page);
+          }, 100);
         }
+        // Clean up localStorage
         localStorage.removeItem('form-draft-restore');
+        // Delete the server-side draft after successful restoration
+        if (token) {
+          fetch(`/api/drafts?token=${token}`, { method: 'DELETE' }).catch(() => {});
+        }
+        // Announce restoration for screen readers
+        announce('Your saved progress has been restored');
       } catch (err) {
         console.error('Error restoring draft:', err);
+        localStorage.removeItem('form-draft-restore');
       }
     }
-  }, [setValue]);
+  }, [setValue, announce]);
 
   // Show draft banner on initial load if draft exists
   useEffect(() => {
