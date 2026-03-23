@@ -529,7 +529,7 @@ function sendConfirmationEmail(toEmail, name, submissionId, submittedAt, isClini
 
 function sendHRNotificationEmail(name, email, submissionId, submittedAt, isClinicalStaff) {
   var subject = 'New Hire Submission: ' + name;
-  var submissionLink = CONFIG.APP_URL + '/admin?highlight=' + submissionId;
+  var submissionLink = 'https://docs.google.com/spreadsheets/d/' + CONFIG.SPREADSHEET_ID;
   var staffType = isClinicalStaff ? 'Clinical Staff' : 'Non-Clinical Staff';
   var badgeClass = isClinicalStaff ? 'badge-clinical' : 'badge-non-clinical';
 

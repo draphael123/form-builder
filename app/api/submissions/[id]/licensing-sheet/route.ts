@@ -54,46 +54,59 @@ export async function GET(
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Licensing Sheet');
 
-    // Set column widths
-    sheet.getColumn(1).width = 40;  // Question/Label
-    sheet.getColumn(2).width = 20;  // State License
-    sheet.getColumn(3).width = 20;  // License Number
-    sheet.getColumn(4).width = 15;  // Issued
-    sheet.getColumn(5).width = 15;  // Expiration
-    sheet.getColumn(6).width = 50;  // Education
-    sheet.getColumn(7).width = 30;  // Employment
-    sheet.getColumn(8).width = 15;  // Portals
-    sheet.getColumn(9).width = 15;  // Log-ins
-    sheet.getColumn(10).width = 20; // Notes
+    // Set column widths to match the screenshot
+    sheet.getColumn(1).width = 45;  // A - Info/Labels
+    sheet.getColumn(2).width = 25;  // B - State License
+    sheet.getColumn(3).width = 18;  // C - License Number
+    sheet.getColumn(4).width = 12;  // D - Issued
+    sheet.getColumn(5).width = 12;  // E - Expiration
+    sheet.getColumn(6).width = 55;  // F - Education
+    sheet.getColumn(7).width = 35;  // G - Employment
+    sheet.getColumn(8).width = 12;  // H - Portals
+    sheet.getColumn(9).width = 12;  // I - Log-ins
+    sheet.getColumn(10).width = 15; // J - Notes
 
-    // Style helpers
-    const headerStyle: Partial<ExcelJS.Style> = {
-      font: { bold: true, size: 11 },
-      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } },
-      border: {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
-      },
+    // Style for borders
+    const thinBorder: Partial<ExcelJS.Borders> = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' },
     };
 
-    const dataStyle: Partial<ExcelJS.Style> = {
-      border: {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
-      },
-      alignment: { wrapText: true, vertical: 'top' },
-    };
-
-    // Row 1: Header row with NPI
+    // Get data values
     const npi = String(data.npi || '');
     const fullName = String(data.fullLegalName || '');
     const credentials = String(data.typeOfProvider || '');
+    const specialty = String(data.specialty || '');
+    const personalEmail = String(data.personalEmailAddress || '');
+    const dob = String(data.dateOfBirth || '');
+    const pob = data.countryOfBirth === 'United States'
+      ? String(data.placeOfBirth || '')
+      : String(data.placeOfBirthInternational || '');
+    const ssn = String(data.socialSecurityNumber || '');
+    const address = String(data.homeMailingAddress || '');
+    const cityStateZip = String(data.cityStateZipCode || '');
+    const employer = String(data.employerPracticeName || '');
 
-    const row1 = sheet.addRow([
+    // Education
+    const undergrad = String(data.undergraduateGraduatePrograms || '');
+    const medSchool = String(data.medicalSchoolProgram || '');
+    const residency = String(data.internshipsResidenciesFellowships || '');
+    const highSchool = String(data.highSchool || '');
+    const middleSchool = String(data.middleSchool || '');
+
+    // Parse licenses
+    const activeLicenses = parseLicenseEntries(String(data.statesLicenseDetailsActive || ''));
+    const deaLicenses = parseLicenseEntries(String(data.deaLicenseNumbers || ''));
+    const csrLicenses = parseLicenseEntries(String(data.csrDetails || ''));
+    const boardCerts = parseLicenseEntries(String(data.boardCertificationsList || ''));
+
+    let currentRow = 1;
+
+    // ROW 1: Header with NPI
+    const headerRow = sheet.getRow(currentRow);
+    headerRow.values = [
       `NPI: ${npi}`,
       'State License',
       'License Number',
@@ -103,132 +116,150 @@ export async function GET(
       'Employment',
       'Portals',
       'Log-ins',
-      'Notes',
-    ]);
-    row1.eachCell((cell) => {
-      Object.assign(cell.style, headerStyle);
+      'Notes'
+    ];
+    headerRow.font = { bold: true };
+    headerRow.eachCell((cell) => {
+      cell.border = thinBorder;
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
     });
+    currentRow++;
 
-    // Row 2: Name and first license
-    const activeLicenses = parseLicenseEntries(String(data.statesLicenseDetailsActive || ''));
-    const firstLicense = activeLicenses[0] || { state: '', licenseNumber: '', issued: '', expiration: '' };
+    // ROW 2: Name, credentials, first board cert, education, employment
+    const row2 = sheet.getRow(currentRow);
+    const firstBoardCert = boardCerts[0] || { state: '', licenseNumber: '', issued: '', expiration: '' };
 
-    // Education entries
-    const undergrad = String(data.undergraduateGraduatePrograms || '');
-    const medSchool = String(data.medicalSchoolProgram || '');
-    const residency = String(data.internshipsResidenciesFellowships || '');
-    const highSchool = String(data.highSchool || '');
-    const middleSchool = String(data.middleSchool || '');
+    // Build education text
+    const educationLines: string[] = [];
+    if (medSchool) educationLines.push(`Medical School: ${medSchool}`);
+    if (undergrad) educationLines.push(`Undergrad/Grad: ${undergrad}`);
+    if (highSchool) educationLines.push(`High School: ${highSchool}`);
+    if (middleSchool) educationLines.push(`Middle School: ${middleSchool}`);
+    if (residency) educationLines.push(`Residency/Fellowship: ${residency}`);
 
-    const educationText = [
-      undergrad ? `Undergraduate/Graduate: ${undergrad}` : '',
-      medSchool ? `Medical School: ${medSchool}` : '',
-      residency ? `Residency/Fellowships: ${residency}` : '',
-      highSchool ? `High School: ${highSchool}` : '',
-      middleSchool ? `Middle School: ${middleSchool}` : '',
-    ].filter(Boolean).join('\n');
-
-    // Employment
-    const employer = String(data.employerPracticeName || '');
-
-    const row2 = sheet.addRow([
+    row2.values = [
       `${fullName}, ${credentials}`,
-      firstLicense.state,
-      firstLicense.licenseNumber,
-      firstLicense.issued,
-      firstLicense.expiration,
-      educationText,
+      firstBoardCert.state ? `${firstBoardCert.state}` : '',
+      firstBoardCert.licenseNumber,
+      firstBoardCert.issued,
+      firstBoardCert.expiration,
+      educationLines.join('\n'),
       employer,
       '',
       '',
-      '',
-    ]);
-    row2.eachCell((cell) => Object.assign(cell.style, dataStyle));
+      ''
+    ];
+    row2.eachCell((cell) => { cell.border = thinBorder; cell.alignment = { wrapText: true, vertical: 'top' }; });
     row2.height = 60;
+    currentRow++;
 
-    // Add more license rows
-    for (let i = 1; i < activeLicenses.length; i++) {
+    // ROW 3: Specialty/additional board certs
+    if (specialty || boardCerts.length > 1) {
+      const row3 = sheet.getRow(currentRow);
+      const secondBoardCert = boardCerts[1] || { state: '', licenseNumber: '', issued: '', expiration: '' };
+      row3.values = [
+        specialty || '',
+        secondBoardCert.state || '',
+        secondBoardCert.licenseNumber || '',
+        secondBoardCert.issued || '',
+        secondBoardCert.expiration || '',
+        '', '', '', '', ''
+      ];
+      row3.eachCell((cell) => { cell.border = thinBorder; });
+      currentRow++;
+    }
+
+    // ROW 4: Personal Email
+    const emailRow = sheet.getRow(currentRow);
+    emailRow.values = [`Personal Email: ${personalEmail}`, '', '', '', '', '', '', '', '', ''];
+    emailRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
+
+    // ROW 5: DOB with state license
+    const dobRow = sheet.getRow(currentRow);
+    const firstStateLicense = activeLicenses[0] || { state: '', licenseNumber: '', issued: '', expiration: '' };
+    dobRow.values = [
+      `DOB: ${dob}`,
+      firstStateLicense.state,
+      firstStateLicense.licenseNumber,
+      firstStateLicense.issued,
+      firstStateLicense.expiration,
+      '', '', '', '', ''
+    ];
+    dobRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
+
+    // ROW 6: POB with state license
+    const pobRow = sheet.getRow(currentRow);
+    const secondStateLicense = activeLicenses[1] || { state: '', licenseNumber: '', issued: '', expiration: '' };
+    pobRow.values = [
+      `POB: ${pob}`,
+      secondStateLicense.state,
+      secondStateLicense.licenseNumber,
+      secondStateLicense.issued,
+      secondStateLicense.expiration,
+      '', '', '', '', ''
+    ];
+    pobRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
+
+    // ROW 7: SSN with state license
+    const ssnRow = sheet.getRow(currentRow);
+    const thirdStateLicense = activeLicenses[2] || { state: '', licenseNumber: '', issued: '', expiration: '' };
+    ssnRow.values = [
+      `SSN: ${ssn}`,
+      thirdStateLicense.state,
+      thirdStateLicense.licenseNumber,
+      thirdStateLicense.issued,
+      thirdStateLicense.expiration,
+      '', '', '', '', ''
+    ];
+    ssnRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
+
+    // ROW 8: Home/Mailing Address
+    const addrRow = sheet.getRow(currentRow);
+    addrRow.values = [`Home/ Mailing Address`, '', '', '', '', '', '', '', '', ''];
+    addrRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
+
+    // ROW 9: Address value with more licenses
+    const addrValueRow = sheet.getRow(currentRow);
+    const fourthStateLicense = activeLicenses[3] || { state: '', licenseNumber: '', issued: '', expiration: '' };
+    addrValueRow.values = [
+      `${address}\n${cityStateZip}`,
+      fourthStateLicense.state,
+      fourthStateLicense.licenseNumber,
+      fourthStateLicense.issued,
+      fourthStateLicense.expiration,
+      '', '', '', '', ''
+    ];
+    addrValueRow.eachCell((cell) => { cell.border = thinBorder; cell.alignment = { wrapText: true }; });
+    currentRow++;
+
+    // Add remaining state licenses
+    for (let i = 4; i < activeLicenses.length; i++) {
       const license = activeLicenses[i];
-      const row = sheet.addRow([
-        '',
-        license.state,
-        license.licenseNumber,
-        license.issued,
-        license.expiration,
-        '',
-        '',
-        '',
-        '',
-        '',
-      ]);
-      row.eachCell((cell) => Object.assign(cell.style, dataStyle));
+      const row = sheet.getRow(currentRow);
+      row.values = ['', license.state, license.licenseNumber, license.issued, license.expiration, '', '', '', '', ''];
+      row.eachCell((cell) => { cell.border = thinBorder; });
+      currentRow++;
     }
 
-    // Personal Email
-    const personalEmail = String(data.personalEmailAddress || '');
-    const personalEmailRow = sheet.addRow([`Personal Email: ${personalEmail}`, '', '', '', '', '', '', '', '', '']);
-    personalEmailRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
-
-    // DOB
-    const dob = String(data.dateOfBirth || '');
-    const dobRow = sheet.addRow([`DOB: ${dob}`, '', '', '', '', '', '', '', '', '']);
-    dobRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
-
-    // POB
-    const countryOfBirth = String(data.countryOfBirth || '');
-    const pob = countryOfBirth === 'United States'
-      ? String(data.placeOfBirth || '')
-      : String(data.placeOfBirthInternational || '');
-    const pobRow = sheet.addRow([`POB: ${pob}`, '', '', '', '', '', '', '', '', '']);
-    pobRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
-
-    // SSN
-    const ssn = String(data.socialSecurityNumber || '');
-    const ssnRow = sheet.addRow([`SSN: ${ssn}`, '', '', '', '', '', '', '', '', '']);
-    ssnRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
-
-    // Home/Mailing Address
-    const address = String(data.homeMailingAddress || '');
-    const cityStateZip = String(data.cityStateZipCode || '');
-    const addressRow = sheet.addRow([`Home/ Mailing Address: ${address}, ${cityStateZip}`, '', '', '', '', '', '', '', '', '']);
-    addressRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
-
-    // DEA License
-    const dea = String(data.deaLicenseNumbers || '');
-    const deaEntries = parseLicenseEntries(dea);
-    for (const entry of deaEntries) {
-      const row = sheet.addRow([
-        '',
-        entry.state,
-        entry.licenseNumber,
-        entry.issued,
-        entry.expiration,
-        '',
-        '',
-        '',
-        '',
-        '',
-      ]);
-      row.eachCell((cell) => Object.assign(cell.style, dataStyle));
+    // DEA Licenses
+    for (const dea of deaLicenses) {
+      const row = sheet.getRow(currentRow);
+      row.values = ['', `${dea.state} DEA`, dea.licenseNumber, dea.issued, dea.expiration, '', '', '', '', ''];
+      row.eachCell((cell) => { cell.border = thinBorder; });
+      currentRow++;
     }
 
-    // CSR
-    const csr = String(data.csrDetails || '');
-    const csrEntries = parseLicenseEntries(csr);
-    for (const entry of csrEntries) {
-      const row = sheet.addRow([
-        'CSR',
-        entry.state,
-        entry.licenseNumber,
-        entry.issued,
-        entry.expiration,
-        '',
-        '',
-        '',
-        '',
-        '',
-      ]);
-      row.eachCell((cell) => Object.assign(cell.style, dataStyle));
+    // CSR Licenses
+    for (const csr of csrLicenses) {
+      const row = sheet.getRow(currentRow);
+      row.values = ['', `${csr.state} CSR`, csr.licenseNumber, csr.issued, csr.expiration, '', '', '', '', ''];
+      row.eachCell((cell) => { cell.border = thinBorder; });
+      currentRow++;
     }
 
     // Physical Description
@@ -236,36 +267,44 @@ export async function GET(
     const hairColor = String(data.hairColor || '');
     const height = String(data.height || '');
     const weight = String(data.weight || '');
-    const physicalRow = sheet.addRow([
-      `Eye Color: ${eyeColor}, Hair: ${hairColor}, Height: ${height}, Weight: ${weight}`,
-      '', '', '', '', '', '', '', '', '',
-    ]);
-    physicalRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
+
+    const physRow = sheet.getRow(currentRow);
+    physRow.values = [`Eye Color: ${eyeColor}, Hair: ${hairColor}, Height: ${height}, Weight: ${weight}`, '', '', '', '', '', '', '', '', ''];
+    physRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
 
     // Other Names
     const otherNames = String(data.anyOtherNamesUsed || '');
-    const otherNamesRow = sheet.addRow([`Any Other Names Used?: ${otherNames}`, '', '', '', '', '', '', '', '', '']);
-    otherNamesRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
+    const otherNamesRow = sheet.getRow(currentRow);
+    otherNamesRow.values = [`Any Other Names Used?: ${otherNames}`, '', '', '', '', '', '', '', '', ''];
+    otherNamesRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
 
     // Citizenship
-    const citizenship = String(data.citizenshipImmigrationStatus || '');
-    const citizenshipRow = sheet.addRow([`Citizenship: ${citizenship}`, '', '', '', '', '', '', '', '', '']);
-    citizenshipRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
+    const citizenship = String(data.citizenshipStatus || data.citizenshipImmigrationStatus || '');
+    const citizenRow = sheet.getRow(currentRow);
+    citizenRow.values = [`Citizenship: ${citizenship}`, '', '', '', '', '', '', '', '', ''];
+    citizenRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
 
     // Race/Ethnicity
     const race = String(data.raceEthnicity || '');
-    const raceRow = sheet.addRow([`Race / Ethnicity: ${race}`, '', '', '', '', '', '', '', '', '']);
-    raceRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
+    const raceRow = sheet.getRow(currentRow);
+    raceRow.values = [`Race / Ethnicity: ${race}`, '', '', '', '', '', '', '', '', ''];
+    raceRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
 
     // Languages
-    const languages = String(data.languagesSpoken || '');
-    const languagesRow = sheet.addRow([`Languages: ${languages}`, '', '', '', '', '', '', '', '', '']);
-    languagesRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
+    const languages = String(data.languagesSpoken || data.otherLanguages || '');
+    const langRow = sheet.getRow(currentRow);
+    langRow.values = [`Languages: ${languages}`, '', '', '', '', '', '', '', '', ''];
+    langRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
 
-    // Empty row
-    sheet.addRow(['', '', '', '', '', '', '', '', '', '']);
+    // Empty rows
+    currentRow += 2;
 
-    // Background Questions Section
+    // Background Questions
     const backgroundQuestions = [
       { field: 'criminalConviction', label: 'Have you ever been convicted of, pled guilty or nolo contendere to a crime (felony or misdemeanor) in any jurisdiction?' },
       { field: 'disciplinaryActions', label: 'Do you currently have any disciplinary actions, investigations, or pending complaints against any health care license in any jurisdiction?' },
@@ -278,37 +317,33 @@ export async function GET(
 
     for (const q of backgroundQuestions) {
       const answer = String(data[q.field] || '');
-      const explanation = String(data[`${q.field}Explanation`] || '');
-      const displayAnswer = answer + (explanation ? `: ${explanation}` : '');
-
-      const row = sheet.addRow([`${q.label}: ${displayAnswer}`, '', '', '', '', '', '', '', '', '']);
-      row.eachCell((cell) => Object.assign(cell.style, dataStyle));
+      const row = sheet.getRow(currentRow);
+      row.values = [`${q.label}: ${answer}`, '', '', '', '', '', '', '', '', ''];
+      row.eachCell((cell) => { cell.border = thinBorder; cell.alignment = { wrapText: true }; });
       row.height = 30;
+      currentRow++;
     }
 
     // Empty row
-    sheet.addRow(['', '', '', '', '', '', '', '', '', '']);
+    currentRow += 2;
 
     // Emergency Contact
     const emergencyName = String(data.emergencyContactName || '');
     const emergencyPhone = String(data.emergencyContactNumber || '');
-    const emergencyRow = sheet.addRow([
-      `Emergency Contact: ${emergencyName}, ${emergencyPhone}`,
-      '', '', '', '', '', '', '', '', '',
-    ]);
-    emergencyRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
+    const emergencyRow = sheet.getRow(currentRow);
+    emergencyRow.values = [`Emergency Contact: ${emergencyName}, ${emergencyPhone}`, '', '', '', '', '', '', '', '', ''];
+    emergencyRow.eachCell((cell) => { cell.border = thinBorder; });
+    currentRow++;
 
     // Empty row
-    sheet.addRow(['', '', '', '', '', '', '', '', '', '']);
+    currentRow += 2;
 
     // Professional References
     const references = String(data.professionalReferences || '');
-    const refsRow = sheet.addRow([
-      `Professional References: ${references}`,
-      '', '', '', '', '', '', '', '', '',
-    ]);
-    refsRow.eachCell((cell) => Object.assign(cell.style, dataStyle));
-    refsRow.height = 80;
+    const refRow = sheet.getRow(currentRow);
+    refRow.values = [`Professional References:\n${references}`, '', '', '', '', '', '', '', '', ''];
+    refRow.eachCell((cell) => { cell.border = thinBorder; cell.alignment = { wrapText: true, vertical: 'top' }; });
+    refRow.height = 80;
 
     // Generate the file
     const buffer = await workbook.xlsx.writeBuffer();
