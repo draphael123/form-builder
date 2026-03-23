@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 function LoginForm() {
   const router = useRouter();
@@ -182,12 +183,12 @@ function LoginForm() {
 
           {/* Footer */}
           <div className="mt-8 text-center">
-            <a
+            <Link
               href="/"
               className="text-sm text-gray-500 hover:text-emerald-600 transition-colors"
             >
               ← Back to form
-            </a>
+            </Link>
           </div>
         </div>
 

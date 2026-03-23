@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium, Page } from 'playwright';
 import path from 'path';
 
 const TEST_DATA = {
@@ -28,7 +28,7 @@ const TEST_DATA = {
   printedName: 'John Michael Test',
 };
 
-async function fillSelect(page: any, id: string, value: string) {
+async function fillSelect(page: Page, id: string, value: string) {
   try {
     const select = page.locator(`select#${id}`);
     if (await select.isVisible({ timeout: 2000 })) {
@@ -43,7 +43,7 @@ async function fillSelect(page: any, id: string, value: string) {
   return false;
 }
 
-async function fillInput(page: any, id: string, value: string) {
+async function fillInput(page: Page, id: string, value: string) {
   try {
     const input = page.locator(`input#${id}`);
     if (await input.isVisible({ timeout: 2000 })) {
@@ -58,7 +58,7 @@ async function fillInput(page: any, id: string, value: string) {
   return false;
 }
 
-async function uploadFile(page: any, labelText: string, filePath: string) {
+async function uploadFile(page: Page, labelText: string, filePath: string) {
   try {
     // Find the file input inside the label - it's sr-only (screen reader only)
     // The structure is: label with text -> contains input[type="file"]
@@ -79,7 +79,7 @@ async function uploadFile(page: any, labelText: string, filePath: string) {
   return false;
 }
 
-async function clickContinue(page: any) {
+async function clickContinue(page: Page) {
   try {
     // Look for Continue or Review Answers button with specific class
     const continueBtn = page.locator('button.btn.btn-primary:has-text("Continue")').first();
@@ -134,7 +134,7 @@ async function runFormBot() {
     console.log('Using test file:', testPdfPath);
 
     let currentSection = 1;
-    let maxSections = 10; // Non-clinical path should be short
+    const maxSections = 10; // Non-clinical path should be short
 
     while (currentSection <= maxSections) {
       console.log(`\n--- Section ${currentSection} ---`);

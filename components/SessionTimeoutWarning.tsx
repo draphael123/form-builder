@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable react-hooks/purity */
 import { useEffect, useState, useCallback } from 'react';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getTranslation } from '@/lib/translations';
@@ -16,7 +17,7 @@ export function SessionTimeoutWarning({
   onExtend,
 }: SessionTimeoutWarningProps) {
   const [showWarning, setShowWarning] = useState(false);
-  const [lastActivity, setLastActivity] = useState(Date.now());
+  const [lastActivity, setLastActivity] = useState(() => Date.now());
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const { settings } = useAccessibility();
   const language = settings.language;

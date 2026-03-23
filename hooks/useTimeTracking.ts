@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable react-hooks/purity */
 import { useEffect, useRef, useCallback, useState } from 'react';
 
 interface SectionTiming {

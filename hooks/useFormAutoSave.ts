@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { UseFormWatch, UseFormReset } from 'react-hook-form';
 

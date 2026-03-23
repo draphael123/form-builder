@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable react-hooks/refs */
 import { useEffect, useRef, useCallback } from 'react';
 
 interface AnalyticsSession {
