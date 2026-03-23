@@ -137,11 +137,11 @@ describe('Date Validation Functions', () => {
       expect(result).toBe('Date cannot be in the future');
     });
 
-    it('should return error for people under 16', () => {
+    it('should return error for people under 18', () => {
       const youngDate = new Date();
       youngDate.setFullYear(youngDate.getFullYear() - 10);
       const result = validateBirthDate(youngDate.toISOString().split('T')[0]);
-      expect(result).toBe('Must be at least 16 years old');
+      expect(result).toBe('Must be at least 18 years old');
     });
 
     it('should return error for impossibly old dates', () => {
