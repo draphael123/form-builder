@@ -456,9 +456,13 @@ export const newHireFormConfig: FormConfig = {
     },
     {
       id: 'licensing-info',
-      title: 'Licensing & Certifications Information (Clinical Staff)',
-      description: 'For clinical staff (MD, DO, NP, RN) only. If you are not an MD, DO, NP, or RN, please enter "N/A" for questions that do not apply to you.',
+      title: 'Licensing & Certifications Information',
+      description: 'For clinical staff (MD, DO, NP, RN) only.',
       estimatedMinutes: 8,
+      showWhen: {
+        field: 'isClinicalStaff',
+        equals: 'Yes',
+      },
       questions: [
         {
           id: 'maidenName',
