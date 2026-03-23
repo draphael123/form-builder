@@ -121,6 +121,7 @@ export interface FormSection {
   description?: string;
   questions: Question[];
   estimatedMinutes?: number; // Estimated time to complete this section in minutes
+  showWhen?: ConditionalLogic; // Conditional logic for showing/hiding entire sections
 }
 
 // Complete form configuration
