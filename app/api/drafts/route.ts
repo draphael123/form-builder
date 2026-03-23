@@ -1,10 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveDraft, getDraftByToken, deleteDraft, generateContinueLink } from '@/lib/drafts';
-import { Resend } from 'resend';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-// TODO: Update FROM_EMAIL once the email alias onboarding@fountainvitality.com is created and verified
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@fountainvitality.com';
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_WEB_APP_URL;
+
+// Helper to call Apps Script
+async function callAppsScript(data: Record<string, unknown>) {
+  if (!APPS_SCRIPT_URL) {
+    throw new Error('Apps Script URL not configured');
+  }
+
+  const response = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  return response.json();
+}
+
+// Generate continue link
+function generateContinueLink(token: string): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://form-builder-pied-two.vercel.app';
+  return `${baseUrl}/continue/${token}`;
+}
 
 // POST - Save draft and send continue link
 export async function POST(request: NextRequest) {
@@ -18,58 +35,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save the draft
-    const draft = saveDraft(email, data, currentPage);
-    const continueLink = generateContinueLink(draft.token);
+    // Save the draft via Apps Script
+    const result = await callAppsScript({
+      saveDraft: {
+        email,
+        data,
+        currentPage,
+      },
+    });
 
-    // Send email if requested
-    if (sendEmail && resend) {
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to save draft');
+    }
+
+    const continueLink = generateContinueLink(result.token);
+
+    // Send email via Apps Script if requested
+    if (sendEmail) {
       try {
-        await resend.emails.send({
-          from: FROM_EMAIL,
-          to: email,
-          subject: 'Continue Your Fountain Onboarding Form',
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-                .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
-                .button { display: inline-block; background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
-                .warning { background-color: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 8px; margin-top: 20px; }
-                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #9ca3af; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <div class="header">
-                  <h1 style="margin: 0;">Continue Your Form</h1>
-                </div>
-                <div class="content">
-                  <p>Hi there,</p>
-                  <p>You requested to save your progress on the Fountain Onboarding form. Click the button below to continue where you left off:</p>
-
-                  <div style="text-align: center;">
-                    <a href="${continueLink}" class="button">Continue My Form</a>
-                  </div>
-
-                  <p>Or copy and paste this link into your browser:</p>
-                  <p style="word-break: break-all; font-size: 12px; color: #6b7280;">${continueLink}</p>
-
-                  <div class="warning">
-                    <strong>Note:</strong> This link will expire in 7 days. After that, you'll need to start a new form.
-                  </div>
-                </div>
-                <div class="footer">
-                  <p>This is an automated message from Fountain Onboarding.</p>
-                </div>
-              </div>
-            </body>
-            </html>
-          `,
+        await callAppsScript({
+          reminderEmail: {
+            to: email,
+            subject: 'Continue Your Fountain Onboarding Form',
+            name: data.firstName || data.fullLegalName || 'there',
+            progress: Math.round((currentPage / 10) * 100), // Approximate progress
+            continueUrl: continueLink,
+            reminderNumber: 1,
+          },
         });
         console.log('Continue link email sent to:', email);
       } catch (emailError) {
@@ -84,15 +76,15 @@ export async function POST(request: NextRequest) {
         ? 'Your progress has been saved! Check your email for a link to continue later.'
         : 'Your progress has been saved.',
       draft: {
-        id: draft.id,
-        expiresAt: draft.expiresAt,
+        id: result.token,
+        expiresAt: result.expiresAt,
       },
-      continueLink: sendEmail ? undefined : continueLink, // Only return link if not emailed
+      continueLink: sendEmail ? undefined : continueLink,
     });
   } catch (error) {
     console.error('Error saving draft:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to save progress' },
+      { success: false, message: 'Failed to save progress. Please try again.' },
       { status: 500 }
     );
   }
@@ -111,11 +103,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const draft = getDraftByToken(token);
+    const result = await callAppsScript({
+      getDraft: { token },
+    });
 
-    if (!draft) {
+    if (!result.success) {
       return NextResponse.json(
-        { success: false, message: 'Draft not found or has expired' },
+        { success: false, message: result.error || 'Draft not found or has expired' },
         { status: 404 }
       );
     }
@@ -123,10 +117,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       draft: {
-        email: draft.email,
-        data: draft.data,
-        currentPage: draft.currentPage,
-        expiresAt: draft.expiresAt,
+        email: result.draft.email,
+        data: result.draft.data,
+        currentPage: result.draft.currentPage,
+        expiresAt: result.draft.expiresAt,
       },
     });
   } catch (error) {
@@ -151,11 +145,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const deleted = deleteDraft(token);
+    const result = await callAppsScript({
+      deleteDraft: { token },
+    });
 
     return NextResponse.json({
       success: true,
-      message: deleted ? 'Draft deleted' : 'Draft not found',
+      message: result.success ? 'Draft deleted' : 'Draft not found',
     });
   } catch (error) {
     console.error('Error deleting draft:', error);

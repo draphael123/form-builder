@@ -98,6 +98,24 @@ function doPost(e) {
       sendReminderEmail(data.reminderEmail);
     }
 
+    // Handle draft save
+    if (data.saveDraft) {
+      var draftResult = saveDraftToSheet(data.saveDraft);
+      return createJsonResponse(draftResult);
+    }
+
+    // Handle draft retrieval
+    if (data.getDraft) {
+      var draft = getDraftFromSheet(data.getDraft.token);
+      return createJsonResponse(draft);
+    }
+
+    // Handle draft deletion
+    if (data.deleteDraft) {
+      var deleteResult = deleteDraftFromSheet(data.deleteDraft.token);
+      return createJsonResponse(deleteResult);
+    }
+
     return createJsonResponse({ success: true });
   } catch (error) {
     Logger.log('Error in doPost: ' + error.message);
@@ -284,6 +302,164 @@ function logToCascadingSheet(spreadsheet, headers, row) {
   }
 
   Logger.log('Cascading format logged to Sheet2 with ' + cascadingRows.length + ' fields');
+}
+
+// ===========================================
+// DRAFT FUNCTIONS
+// ===========================================
+
+function getDraftsSheet() {
+  var spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  var sheet = spreadsheet.getSheetByName('Drafts');
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet('Drafts');
+    // Add headers
+    sheet.getRange(1, 1, 1, 7).setValues([['Token', 'Email', 'Data', 'CurrentPage', 'CreatedAt', 'UpdatedAt', 'ExpiresAt']]);
+    sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function generateDraftToken() {
+  var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  var token = '';
+  for (var i = 0; i < 64; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
+function saveDraftToSheet(draftData) {
+  try {
+    var sheet = getDraftsSheet();
+    var email = draftData.email.toLowerCase();
+    var data = JSON.stringify(draftData.data);
+    var currentPage = draftData.currentPage || 0;
+
+    var now = new Date();
+    var expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    // Check if draft exists for this email
+    var dataRange = sheet.getDataRange();
+    var values = dataRange.getValues();
+    var existingRow = -1;
+
+    for (var i = 1; i < values.length; i++) {
+      if (values[i][1] && values[i][1].toLowerCase() === email) {
+        existingRow = i + 1; // +1 because sheet rows are 1-indexed
+        break;
+      }
+    }
+
+    var token;
+    if (existingRow > 0) {
+      // Update existing draft
+      token = values[existingRow - 1][0]; // Keep existing token
+      sheet.getRange(existingRow, 3).setValue(data);
+      sheet.getRange(existingRow, 4).setValue(currentPage);
+      sheet.getRange(existingRow, 6).setValue(now.toISOString());
+      sheet.getRange(existingRow, 7).setValue(expiresAt.toISOString());
+    } else {
+      // Create new draft
+      token = generateDraftToken();
+      sheet.appendRow([
+        token,
+        email,
+        data,
+        currentPage,
+        now.toISOString(),
+        now.toISOString(),
+        expiresAt.toISOString()
+      ]);
+    }
+
+    return {
+      success: true,
+      token: token,
+      expiresAt: expiresAt.toISOString()
+    };
+  } catch (error) {
+    Logger.log('Error saving draft: ' + error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+function getDraftFromSheet(token) {
+  try {
+    var sheet = getDraftsSheet();
+    var dataRange = sheet.getDataRange();
+    var values = dataRange.getValues();
+
+    for (var i = 1; i < values.length; i++) {
+      if (values[i][0] === token) {
+        var expiresAt = new Date(values[i][6]);
+        if (expiresAt < new Date()) {
+          // Draft expired, delete it
+          sheet.deleteRow(i + 1);
+          return { success: false, error: 'Draft expired' };
+        }
+
+        return {
+          success: true,
+          draft: {
+            token: values[i][0],
+            email: values[i][1],
+            data: JSON.parse(values[i][2]),
+            currentPage: values[i][3],
+            createdAt: values[i][4],
+            updatedAt: values[i][5],
+            expiresAt: values[i][6]
+          }
+        };
+      }
+    }
+
+    return { success: false, error: 'Draft not found' };
+  } catch (error) {
+    Logger.log('Error getting draft: ' + error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+function deleteDraftFromSheet(token) {
+  try {
+    var sheet = getDraftsSheet();
+    var dataRange = sheet.getDataRange();
+    var values = dataRange.getValues();
+
+    for (var i = 1; i < values.length; i++) {
+      if (values[i][0] === token) {
+        sheet.deleteRow(i + 1);
+        return { success: true };
+      }
+    }
+
+    return { success: false, error: 'Draft not found' };
+  } catch (error) {
+    Logger.log('Error deleting draft: ' + error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+function deleteDraftByEmail(email) {
+  try {
+    var sheet = getDraftsSheet();
+    var dataRange = sheet.getDataRange();
+    var values = dataRange.getValues();
+    var emailLower = email.toLowerCase();
+
+    for (var i = values.length - 1; i >= 1; i--) {
+      if (values[i][1] && values[i][1].toLowerCase() === emailLower) {
+        sheet.deleteRow(i + 1);
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    Logger.log('Error deleting draft by email: ' + error.message);
+    return { success: false, error: error.message };
+  }
 }
 
 // ===========================================
