@@ -84,11 +84,38 @@ export const newHireFormConfig: FormConfig = {
           validationType: 'birthDate',
         },
         {
+          id: 'countryOfBirth',
+          type: 'dropdown',
+          label: 'Country of Birth',
+          placeholder: 'Select country',
+          required: true,
+          options: [
+            { label: 'United States', value: 'United States' },
+            { label: 'Other Country', value: 'Other' },
+          ],
+        },
+        {
           id: 'placeOfBirth',
           type: 'short-text',
-          label: 'Place of Birth (City, State, Country)',
-          placeholder: 'e.g., Miami, FL, USA',
+          label: 'Place of Birth (City, State)',
+          placeholder: 'e.g., Miami, FL',
           required: true,
+          showWhen: {
+            field: 'countryOfBirth',
+            equals: 'United States',
+          },
+        },
+        {
+          id: 'placeOfBirthInternational',
+          type: 'short-text',
+          label: 'Place of Birth (City, Country)',
+          placeholder: 'e.g., Toronto, Canada',
+          description: 'Enter your city and country of birth',
+          required: true,
+          showWhen: {
+            field: 'countryOfBirth',
+            equals: 'Other',
+          },
         },
         {
           id: 'gender',

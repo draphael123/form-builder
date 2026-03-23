@@ -508,6 +508,12 @@ export default function AdminPage() {
                         Download PDF
                       </button>
                       <button
+                        onClick={() => window.open(`/api/submissions/${selectedSubmission.id}/licensing-sheet`, '_blank')}
+                        className="px-3 py-1.5 text-sm font-medium text-emerald-600 border border-emerald-300 rounded-md hover:bg-emerald-50"
+                      >
+                        Licensing Sheet
+                      </button>
+                      <button
                         onClick={() => handleDelete(selectedSubmission.id)}
                         className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50"
                       >
