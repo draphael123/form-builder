@@ -337,10 +337,40 @@ export default function FormPage() {
     return currentValue === equals;
   }, [watchedValues]);
 
-  // Check if a section should be shown (has at least one visible question)
+  // Check if a section should be shown based on section-level showWhen and having visible questions
   const shouldShowSection = useCallback((section: FormSectionType): boolean => {
+    // First check section-level conditional logic
+    if (section.showWhen) {
+      const { field, equals, notEmpty } = section.showWhen;
+      const currentValue = watchedValues[field];
+
+      if (notEmpty) {
+        if (currentValue === undefined || currentValue === null || currentValue === '') {
+          return false;
+        }
+        if (Array.isArray(currentValue)) {
+          if (currentValue.length === 0) return false;
+        }
+        if (typeof currentValue === 'string' && currentValue.trim().length === 0) {
+          return false;
+        }
+      } else if (equals !== undefined) {
+        if (currentValue === undefined || currentValue === null) {
+          return false;
+        }
+        if (Array.isArray(equals)) {
+          if (typeof currentValue !== 'string' || !equals.includes(currentValue)) {
+            return false;
+          }
+        } else if (currentValue !== equals) {
+          return false;
+        }
+      }
+    }
+
+    // Then check if at least one question is visible
     return section.questions.some((question) => shouldShowQuestion(question));
-  }, [shouldShowQuestion]);
+  }, [shouldShowQuestion, watchedValues]);
 
   // Get visible sections only
   const visibleSections = useMemo(() => {

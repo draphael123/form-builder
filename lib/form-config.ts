@@ -1518,39 +1518,42 @@ export const newHireFormConfig: FormConfig = {
     },
 
     // ============================================================
-    // SECTION: MD or DO Section
+    // SECTION: MD or DO Section (only for MD/DO providers)
     // ============================================================
     {
       id: 'md-do-section',
       title: 'MD or DO Section',
-      description: 'If you are an MD or DO, please select Yes in the section below.',
+      description: 'Additional information for physicians.',
       estimatedMinutes: 1,
+      showWhen: {
+        field: 'typeOfProvider',
+        equals: ['MD', 'DO'],
+      },
       questions: [
         {
-          id: 'isMDorDO',
+          id: 'physicianConfirmation',
           type: 'dropdown',
-          label: 'Are you an MD or DO?',
+          label: 'Please confirm you are a licensed physician (MD or DO)',
           placeholder: 'Select an option',
           required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
           options: [
-            { label: 'Yes', value: 'Yes' },
-            { label: 'No', value: 'No' },
+            { label: 'Yes, I confirm', value: 'Yes' },
           ],
         },
       ],
     },
 
     // ============================================================
-    // SECTION: NP or RN Section
+    // SECTION: NP or RN Section (only for NP/RN providers)
     // ============================================================
     {
       id: 'np-rn-section',
       title: 'NP or RN Section',
       estimatedMinutes: 2,
+      showWhen: {
+        field: 'typeOfProvider',
+        equals: ['NP', 'RN'],
+      },
       questions: [
         {
           id: 'nursysLicenseUpload',
@@ -1560,25 +1563,6 @@ export const newHireFormConfig: FormConfig = {
           required: true,
           accept: ['.pdf', '.jpg', '.jpeg', '.png', 'image/*', 'application/pdf'],
           maxSize: 10,
-          showWhen: {
-            field: 'typeOfProvider',
-            equals: ['NP', 'RN'],
-          },
-        },
-        {
-          id: 'isNPorRN',
-          type: 'dropdown',
-          label: 'Are you either a NP or RN?',
-          placeholder: 'Select an option',
-          required: true,
-          showWhen: {
-            field: 'isClinicalStaff',
-            equals: 'Yes',
-          },
-          options: [
-            { label: 'Yes', value: 'Yes' },
-            { label: 'No', value: 'No' },
-          ],
         },
       ],
     },

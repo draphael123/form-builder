@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+
+/* Google Fonts are loaded via next/font in layout.tsx */
 
 :root {
   /* Blue & White Palette */
@@ -22,9 +23,8 @@
   --shadow-warm-lg: 0 8px 24px rgba(30, 41, 59, 0.06), 0 16px 48px rgba(37, 99, 235, 0.1);
   --shadow-warm-hover: 0 12px 32px rgba(30, 41, 59, 0.08), 0 20px 56px rgba(37, 99, 235, 0.12);
 
-  /* Typography */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
+  /* Typography - fonts loaded via next/font in layout.tsx, fallbacks defined here */
+  /* --font-display and --font-body CSS variables are set by next/font on <body> */
 
   /* Spacing */
   --space-section: clamp(2rem, 5vw, 4rem);
