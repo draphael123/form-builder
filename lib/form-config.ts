@@ -359,8 +359,12 @@ export const newHireFormConfig: FormConfig = {
     },
     {
       id: 'other-names-section',
-      title: 'If Yes: Other Names Used',
+      title: 'Other Names Documentation',
       estimatedMinutes: 1,
+      showWhen: {
+        field: 'anyOtherNamesUsed',
+        equals: 'Yes',
+      },
       questions: [
         {
           id: 'nameChangeDocuments',
@@ -370,10 +374,6 @@ export const newHireFormConfig: FormConfig = {
           required: true,
           accept: ['.pdf', '.jpg', '.jpeg', '.png', 'image/*', 'application/pdf'],
           maxSize: 10,
-          showWhen: {
-            field: 'anyOtherNamesUsed',
-            equals: 'Yes',
-          },
         },
       ],
     },
