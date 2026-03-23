@@ -49,19 +49,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback: Return as data URL
-    const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${fileBase64}`;
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        fileName: fileName,
-        fileUrl: dataUrl,
-        webViewLink: dataUrl,
-        isDataUrl: true,
-      },
-      warning: 'File stored as data URL. Configure APPS_SCRIPT_WEB_APP_URL for Google Drive storage.',
-    });
+    // No fallback - require successful Google Drive upload
+    return NextResponse.json(
+      { success: false, message: 'File upload failed. Please try again.' },
+      { status: 500 }
+    );
   } catch (error) {
     console.error('Error uploading file:', error);
     return NextResponse.json(
