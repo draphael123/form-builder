@@ -1,16 +1,204 @@
 import { FormConfig } from '@/types/form';
 
+// Country code options reused across multiple phone fields
+const countryCodeOptions = [
+  { label: 'United States / Canada (+1)', value: '+1' },
+  { label: 'United Kingdom (+44)', value: '+44' },
+  { label: 'Australia (+61)', value: '+61' },
+  { label: 'Germany (+49)', value: '+49' },
+  { label: 'France (+33)', value: '+33' },
+  { label: 'India (+91)', value: '+91' },
+  { label: 'China (+86)', value: '+86' },
+  { label: 'Japan (+81)', value: '+81' },
+  { label: 'Mexico (+52)', value: '+52' },
+  { label: 'Brazil (+55)', value: '+55' },
+  { label: 'Philippines (+63)', value: '+63' },
+  { label: 'South Korea (+82)', value: '+82' },
+  { label: 'Italy (+39)', value: '+39' },
+  { label: 'Spain (+34)', value: '+34' },
+  { label: 'Netherlands (+31)', value: '+31' },
+  { label: 'Other', value: 'Other' },
+];
+
+// Full country list for Country of Birth (Item 9)
+const countryOptions = [
+  { label: 'United States', value: 'United States' },
+  { label: 'Afghanistan', value: 'Afghanistan' },
+  { label: 'Albania', value: 'Albania' },
+  { label: 'Algeria', value: 'Algeria' },
+  { label: 'Argentina', value: 'Argentina' },
+  { label: 'Australia', value: 'Australia' },
+  { label: 'Austria', value: 'Austria' },
+  { label: 'Bangladesh', value: 'Bangladesh' },
+  { label: 'Belgium', value: 'Belgium' },
+  { label: 'Brazil', value: 'Brazil' },
+  { label: 'Canada', value: 'Canada' },
+  { label: 'Chile', value: 'Chile' },
+  { label: 'China', value: 'China' },
+  { label: 'Colombia', value: 'Colombia' },
+  { label: 'Costa Rica', value: 'Costa Rica' },
+  { label: 'Cuba', value: 'Cuba' },
+  { label: 'Czech Republic', value: 'Czech Republic' },
+  { label: 'Denmark', value: 'Denmark' },
+  { label: 'Dominican Republic', value: 'Dominican Republic' },
+  { label: 'Ecuador', value: 'Ecuador' },
+  { label: 'Egypt', value: 'Egypt' },
+  { label: 'El Salvador', value: 'El Salvador' },
+  { label: 'Ethiopia', value: 'Ethiopia' },
+  { label: 'Finland', value: 'Finland' },
+  { label: 'France', value: 'France' },
+  { label: 'Germany', value: 'Germany' },
+  { label: 'Ghana', value: 'Ghana' },
+  { label: 'Greece', value: 'Greece' },
+  { label: 'Guatemala', value: 'Guatemala' },
+  { label: 'Haiti', value: 'Haiti' },
+  { label: 'Honduras', value: 'Honduras' },
+  { label: 'Hong Kong', value: 'Hong Kong' },
+  { label: 'Hungary', value: 'Hungary' },
+  { label: 'India', value: 'India' },
+  { label: 'Indonesia', value: 'Indonesia' },
+  { label: 'Iran', value: 'Iran' },
+  { label: 'Iraq', value: 'Iraq' },
+  { label: 'Ireland', value: 'Ireland' },
+  { label: 'Israel', value: 'Israel' },
+  { label: 'Italy', value: 'Italy' },
+  { label: 'Jamaica', value: 'Jamaica' },
+  { label: 'Japan', value: 'Japan' },
+  { label: 'Jordan', value: 'Jordan' },
+  { label: 'Kenya', value: 'Kenya' },
+  { label: 'Lebanon', value: 'Lebanon' },
+  { label: 'Malaysia', value: 'Malaysia' },
+  { label: 'Mexico', value: 'Mexico' },
+  { label: 'Morocco', value: 'Morocco' },
+  { label: 'Nepal', value: 'Nepal' },
+  { label: 'Netherlands', value: 'Netherlands' },
+  { label: 'New Zealand', value: 'New Zealand' },
+  { label: 'Nicaragua', value: 'Nicaragua' },
+  { label: 'Nigeria', value: 'Nigeria' },
+  { label: 'Norway', value: 'Norway' },
+  { label: 'Pakistan', value: 'Pakistan' },
+  { label: 'Panama', value: 'Panama' },
+  { label: 'Peru', value: 'Peru' },
+  { label: 'Philippines', value: 'Philippines' },
+  { label: 'Poland', value: 'Poland' },
+  { label: 'Portugal', value: 'Portugal' },
+  { label: 'Puerto Rico', value: 'Puerto Rico' },
+  { label: 'Romania', value: 'Romania' },
+  { label: 'Russia', value: 'Russia' },
+  { label: 'Saudi Arabia', value: 'Saudi Arabia' },
+  { label: 'Singapore', value: 'Singapore' },
+  { label: 'South Africa', value: 'South Africa' },
+  { label: 'South Korea', value: 'South Korea' },
+  { label: 'Spain', value: 'Spain' },
+  { label: 'Sri Lanka', value: 'Sri Lanka' },
+  { label: 'Sweden', value: 'Sweden' },
+  { label: 'Switzerland', value: 'Switzerland' },
+  { label: 'Taiwan', value: 'Taiwan' },
+  { label: 'Thailand', value: 'Thailand' },
+  { label: 'Trinidad and Tobago', value: 'Trinidad and Tobago' },
+  { label: 'Turkey', value: 'Turkey' },
+  { label: 'Ukraine', value: 'Ukraine' },
+  { label: 'United Arab Emirates', value: 'United Arab Emirates' },
+  { label: 'United Kingdom', value: 'United Kingdom' },
+  { label: 'Venezuela', value: 'Venezuela' },
+  { label: 'Vietnam', value: 'Vietnam' },
+  { label: 'Other', value: 'Other' },
+];
+
+// US States list
+const usStateOptions = [
+  { label: 'Alabama', value: 'AL' },
+  { label: 'Alaska', value: 'AK' },
+  { label: 'Arizona', value: 'AZ' },
+  { label: 'Arkansas', value: 'AR' },
+  { label: 'California', value: 'CA' },
+  { label: 'Colorado', value: 'CO' },
+  { label: 'Connecticut', value: 'CT' },
+  { label: 'Delaware', value: 'DE' },
+  { label: 'District of Columbia', value: 'DC' },
+  { label: 'Florida', value: 'FL' },
+  { label: 'Georgia', value: 'GA' },
+  { label: 'Hawaii', value: 'HI' },
+  { label: 'Idaho', value: 'ID' },
+  { label: 'Illinois', value: 'IL' },
+  { label: 'Indiana', value: 'IN' },
+  { label: 'Iowa', value: 'IA' },
+  { label: 'Kansas', value: 'KS' },
+  { label: 'Kentucky', value: 'KY' },
+  { label: 'Louisiana', value: 'LA' },
+  { label: 'Maine', value: 'ME' },
+  { label: 'Maryland', value: 'MD' },
+  { label: 'Massachusetts', value: 'MA' },
+  { label: 'Michigan', value: 'MI' },
+  { label: 'Minnesota', value: 'MN' },
+  { label: 'Mississippi', value: 'MS' },
+  { label: 'Missouri', value: 'MO' },
+  { label: 'Montana', value: 'MT' },
+  { label: 'Nebraska', value: 'NE' },
+  { label: 'Nevada', value: 'NV' },
+  { label: 'New Hampshire', value: 'NH' },
+  { label: 'New Jersey', value: 'NJ' },
+  { label: 'New Mexico', value: 'NM' },
+  { label: 'New York', value: 'NY' },
+  { label: 'North Carolina', value: 'NC' },
+  { label: 'North Dakota', value: 'ND' },
+  { label: 'Ohio', value: 'OH' },
+  { label: 'Oklahoma', value: 'OK' },
+  { label: 'Oregon', value: 'OR' },
+  { label: 'Pennsylvania', value: 'PA' },
+  { label: 'Puerto Rico', value: 'PR' },
+  { label: 'Rhode Island', value: 'RI' },
+  { label: 'South Carolina', value: 'SC' },
+  { label: 'South Dakota', value: 'SD' },
+  { label: 'Tennessee', value: 'TN' },
+  { label: 'Texas', value: 'TX' },
+  { label: 'Utah', value: 'UT' },
+  { label: 'Vermont', value: 'VT' },
+  { label: 'Virginia', value: 'VA' },
+  { label: 'Washington', value: 'WA' },
+  { label: 'West Virginia', value: 'WV' },
+  { label: 'Wisconsin', value: 'WI' },
+  { label: 'Wyoming', value: 'WY' },
+];
+
+// Race/Ethnicity options for multi-select checkbox (Item 3)
+const raceEthnicityOptions = [
+  { label: 'Hispanic or Latino', value: 'Hispanic or Latino' },
+  { label: 'White (Not Hispanic or Latino)', value: 'White (Not Hispanic or Latino)' },
+  { label: 'Black or African American (Not Hispanic or Latino)', value: 'Black or African American (Not Hispanic or Latino)' },
+  { label: 'Native Hawaiian or Other Pacific Islander (Not Hispanic or Latino)', value: 'Native Hawaiian or Other Pacific Islander (Not Hispanic or Latino)' },
+  { label: 'Asian (Not Hispanic or Latino)', value: 'Asian (Not Hispanic or Latino)' },
+  { label: 'American Indian or Alaska Native (Not Hispanic or Latino)', value: 'American Indian or Alaska Native (Not Hispanic or Latino)' },
+  { label: 'Two or More Races (Not Hispanic or Latino)', value: 'Two or More Races (Not Hispanic or Latino)' },
+  { label: 'Prefer not to answer', value: 'Prefer not to answer' },
+];
+
+// Relationship options for emergency contacts
+const relationshipOptions = [
+  { label: 'Spouse', value: 'Spouse' },
+  { label: 'Parent', value: 'Parent' },
+  { label: 'Sibling', value: 'Sibling' },
+  { label: 'Child', value: 'Child' },
+  { label: 'Partner', value: 'Partner' },
+  { label: 'Friend', value: 'Friend' },
+  { label: 'Other Relative', value: 'Other Relative' },
+  { label: 'Other', value: 'Other' },
+];
+
 export const newHireFormConfig: FormConfig = {
   title: 'Fountain Onboarding: New Hire Information',
   description: 'Demographic / Personal Information\nPlease fill out all required fields. This form is for all new hires',
   submitButtonText: 'Submit',
   successMessage: 'Thank you! Your information has been submitted successfully.',
   sections: [
+    // ============================================================
+    // SECTION 1A: Basic Personal Information
+    // ============================================================
     {
-      id: 'demographic-info',
-      title: 'Fountain Onboarding: New Hire Information',
-      description: 'Demographic / Personal Information',
-      estimatedMinutes: 5,
+      id: 'personal-info',
+      title: 'Personal Information',
+      description: 'Name, date of birth, and place of birth',
+      estimatedMinutes: 2,
       questions: [
         {
           id: 'firstName',
@@ -21,7 +209,7 @@ export const newHireFormConfig: FormConfig = {
         {
           id: 'middleName',
           type: 'short-text',
-          label: 'Middle Name',
+          label: 'Middle Name (optional)',
           required: false,
         },
         {
@@ -33,7 +221,7 @@ export const newHireFormConfig: FormConfig = {
         {
           id: 'suffix',
           type: 'dropdown',
-          label: 'Suffix',
+          label: 'Suffix (optional)',
           placeholder: 'Select if applicable',
           required: false,
           options: [
@@ -47,8 +235,8 @@ export const newHireFormConfig: FormConfig = {
         {
           id: 'preferredName',
           type: 'short-text',
-          label: 'Preferred Name',
-          description: 'What name do you go by day-to-day? (Optional)',
+          label: 'Preferred Name (optional)',
+          description: 'What name do you go by day-to-day?',
           required: false,
         },
         {
@@ -89,10 +277,7 @@ export const newHireFormConfig: FormConfig = {
           label: 'Country of Birth',
           placeholder: 'Select country',
           required: true,
-          options: [
-            { label: 'United States', value: 'United States' },
-            { label: 'Other Country', value: 'Other' },
-          ],
+          options: countryOptions,
         },
         {
           id: 'placeOfBirth',
@@ -108,15 +293,38 @@ export const newHireFormConfig: FormConfig = {
         {
           id: 'placeOfBirthInternational',
           type: 'short-text',
-          label: 'Place of Birth (City, Country)',
-          placeholder: 'e.g., Toronto, Canada',
-          description: 'Enter your city and country of birth',
+          label: 'Place of Birth (City)',
+          placeholder: 'e.g., London',
+          description: 'Enter the city where you were born',
           required: true,
           showWhen: {
             field: 'countryOfBirth',
             equals: 'Other',
           },
         },
+        {
+          id: 'countryOfBirthOther',
+          type: 'short-text',
+          label: 'Country of Birth (specify)',
+          placeholder: 'Enter your country of birth',
+          required: true,
+          showWhen: {
+            field: 'countryOfBirth',
+            equals: 'Other',
+          },
+        },
+      ],
+    },
+
+    // ============================================================
+    // SECTION 1B: Identity & Demographics
+    // ============================================================
+    {
+      id: 'identity-demographics',
+      title: 'Identity & Demographics',
+      description: 'Gender, citizenship, and demographic information',
+      estimatedMinutes: 1,
+      questions: [
         {
           id: 'gender',
           type: 'dropdown',
@@ -134,15 +342,15 @@ export const newHireFormConfig: FormConfig = {
         {
           id: 'pronouns',
           type: 'short-text',
-          label: 'Pronouns',
+          label: 'Pronouns (optional)',
           placeholder: 'e.g., she/her, he/him, they/them',
-          description: 'Optional - enter your preferred pronouns',
           required: false,
         },
         {
           id: 'citizenshipStatus',
           type: 'dropdown',
           label: 'Citizenship / Immigration Status',
+          description: 'Required for I-9 employment verification',
           placeholder: 'Select citizenship status',
           required: true,
           options: [
@@ -154,24 +362,26 @@ export const newHireFormConfig: FormConfig = {
         },
         {
           id: 'raceEthnicity',
-          type: 'dropdown',
+          type: 'checkbox',
           label: 'Race / Ethnicity',
-          description: 'Please select one or more of the following that best describes your race/ethnicity:',
-          placeholder: 'Select race/ethnicity',
+          description: 'Select all that apply. This information is collected for EEO compliance purposes.',
           required: true,
-          options: [
-            { label: 'Hispanic or Latino', value: 'Hispanic or Latino' },
-            { label: 'White (Not Hispanic or Latino)', value: 'White (Not Hispanic or Latino)' },
-            { label: 'Black or African American (Not Hispanic or Latino)', value: 'Black or African American (Not Hispanic or Latino)' },
-            { label: 'Native Hawaiian or Other Pacific Islander (Not Hispanic or Latino)', value: 'Native Hawaiian or Other Pacific Islander (Not Hispanic or Latino)' },
-            { label: 'Asian (Not Hispanic or Latino)', value: 'Asian (Not Hispanic or Latino)' },
-            { label: 'American Indian or Alaska Native (Not Hispanic or Latino)', value: 'American Indian or Alaska Native (Not Hispanic or Latino)' },
-            { label: 'Two or More Races (Not Hispanic or Latino)', value: 'Two or More Races (Not Hispanic or Latino)' },
-            { label: 'Prefer not to answer', value: 'Prefer not to answer' },
-            { label: 'Other', value: 'Other' },
-          ],
+          options: raceEthnicityOptions,
         },
+      ],
+    },
+
+    // ============================================================
+    // SECTION 1C: Contact Information
+    // ============================================================
+    {
+      id: 'contact-info',
+      title: 'Contact Information',
+      description: 'Address, phone, and email',
+      estimatedMinutes: 2,
+      questions: [
         {
+          // Item 4: Street Address is required (already was, confirming)
           id: 'homeMailingAddress',
           type: 'short-text',
           label: 'Street Address',
@@ -192,80 +402,92 @@ export const newHireFormConfig: FormConfig = {
           required: true,
         },
         {
+          id: 'addressCountry',
+          type: 'dropdown',
+          label: 'Country',
+          placeholder: 'Select country',
+          required: true,
+          options: [
+            { label: 'United States', value: 'United States' },
+            { label: 'Other', value: 'Other' },
+          ],
+        },
+        {
+          // Conditional: Show state dropdown for US addresses
           id: 'state',
           type: 'dropdown',
           label: 'State',
           placeholder: 'Select state',
           required: true,
-          options: [
-            { label: 'Alabama', value: 'AL' },
-            { label: 'Alaska', value: 'AK' },
-            { label: 'Arizona', value: 'AZ' },
-            { label: 'Arkansas', value: 'AR' },
-            { label: 'California', value: 'CA' },
-            { label: 'Colorado', value: 'CO' },
-            { label: 'Connecticut', value: 'CT' },
-            { label: 'Delaware', value: 'DE' },
-            { label: 'District of Columbia', value: 'DC' },
-            { label: 'Florida', value: 'FL' },
-            { label: 'Georgia', value: 'GA' },
-            { label: 'Hawaii', value: 'HI' },
-            { label: 'Idaho', value: 'ID' },
-            { label: 'Illinois', value: 'IL' },
-            { label: 'Indiana', value: 'IN' },
-            { label: 'Iowa', value: 'IA' },
-            { label: 'Kansas', value: 'KS' },
-            { label: 'Kentucky', value: 'KY' },
-            { label: 'Louisiana', value: 'LA' },
-            { label: 'Maine', value: 'ME' },
-            { label: 'Maryland', value: 'MD' },
-            { label: 'Massachusetts', value: 'MA' },
-            { label: 'Michigan', value: 'MI' },
-            { label: 'Minnesota', value: 'MN' },
-            { label: 'Mississippi', value: 'MS' },
-            { label: 'Missouri', value: 'MO' },
-            { label: 'Montana', value: 'MT' },
-            { label: 'Nebraska', value: 'NE' },
-            { label: 'Nevada', value: 'NV' },
-            { label: 'New Hampshire', value: 'NH' },
-            { label: 'New Jersey', value: 'NJ' },
-            { label: 'New Mexico', value: 'NM' },
-            { label: 'New York', value: 'NY' },
-            { label: 'North Carolina', value: 'NC' },
-            { label: 'North Dakota', value: 'ND' },
-            { label: 'Ohio', value: 'OH' },
-            { label: 'Oklahoma', value: 'OK' },
-            { label: 'Oregon', value: 'OR' },
-            { label: 'Pennsylvania', value: 'PA' },
-            { label: 'Puerto Rico', value: 'PR' },
-            { label: 'Rhode Island', value: 'RI' },
-            { label: 'South Carolina', value: 'SC' },
-            { label: 'South Dakota', value: 'SD' },
-            { label: 'Tennessee', value: 'TN' },
-            { label: 'Texas', value: 'TX' },
-            { label: 'Utah', value: 'UT' },
-            { label: 'Vermont', value: 'VT' },
-            { label: 'Virginia', value: 'VA' },
-            { label: 'Washington', value: 'WA' },
-            { label: 'West Virginia', value: 'WV' },
-            { label: 'Wisconsin', value: 'WI' },
-            { label: 'Wyoming', value: 'WY' },
-          ],
+          showWhen: {
+            field: 'addressCountry',
+            equals: 'United States',
+          },
+          options: usStateOptions,
         },
         {
+          // Conditional: Show free text for international addresses
+          id: 'stateProvinceInternational',
+          type: 'short-text',
+          label: 'State / Province / Region',
+          placeholder: 'Enter your state, province, or region',
+          required: true,
+          showWhen: {
+            field: 'addressCountry',
+            equals: 'Other',
+          },
+        },
+        {
+          // Conditional: Show country name for international addresses
+          id: 'countryName',
+          type: 'short-text',
+          label: 'Country Name',
+          placeholder: 'Enter your country',
+          required: true,
+          showWhen: {
+            field: 'addressCountry',
+            equals: 'Other',
+          },
+        },
+        {
+          // Item 6: Added zipCode validation type for US ZIP format
           id: 'zipCode',
           type: 'short-text',
-          label: 'Zip Code',
-          placeholder: '12345',
+          label: 'Zip / Postal Code',
+          placeholder: '12345 or 12345-6789',
+          description: 'US format: 5 digits or ZIP+4',
           required: true,
+          validationType: 'zipCode',
         },
         {
+          id: 'preferredPhoneCountryCode',
+          type: 'dropdown',
+          label: 'Phone Country Code',
+          placeholder: 'Select country code',
+          required: true,
+          options: countryCodeOptions,
+        },
+        {
+          id: 'preferredPhoneCountryCodeOther',
+          type: 'short-text',
+          label: 'Other Country Code',
+          placeholder: 'e.g., +353',
+          description: 'Enter your country code with + sign',
+          required: true,
+          showWhen: {
+            field: 'preferredPhoneCountryCode',
+            equals: 'Other',
+          },
+        },
+        {
+          // Item 7: Phone input masking is handled in TextField component
           id: 'preferredPhoneNumber',
           type: 'short-text',
           label: 'Preferred Phone Number',
-          description: 'Format: (###) ###-####',
+          description: 'Enter phone number without country code',
+          placeholder: 'e.g., 555-123-4567',
           required: true,
-          validationType: 'phone',
+          validationType: 'phoneInternational',
         },
         {
           id: 'personalEmailAddress',
@@ -274,6 +496,28 @@ export const newHireFormConfig: FormConfig = {
           required: true,
           validationType: 'email',
         },
+        {
+          // Item 8: Added Confirm Email field
+          id: 'confirmEmailAddress',
+          type: 'short-text',
+          label: 'Confirm Personal Email Address',
+          description: 'Please re-enter your email address to confirm',
+          required: true,
+          validationType: 'confirmEmail',
+        },
+      ],
+    },
+
+    // ============================================================
+    // SECTION 1D: Emergency Contacts
+    // ============================================================
+    {
+      id: 'emergency-contacts',
+      title: 'Emergency Contacts',
+      description: 'Who should we contact in case of emergency?',
+      estimatedMinutes: 2,
+      questions: [
+        // Emergency Contact 1 (Required)
         {
           id: 'emergencyContact1Name',
           type: 'short-text',
@@ -286,25 +530,40 @@ export const newHireFormConfig: FormConfig = {
           label: 'Emergency Contact 1 - Relationship',
           placeholder: 'Select relationship',
           required: true,
-          options: [
-            { label: 'Spouse', value: 'Spouse' },
-            { label: 'Parent', value: 'Parent' },
-            { label: 'Sibling', value: 'Sibling' },
-            { label: 'Child', value: 'Child' },
-            { label: 'Partner', value: 'Partner' },
-            { label: 'Friend', value: 'Friend' },
-            { label: 'Other Relative', value: 'Other Relative' },
-            { label: 'Other', value: 'Other' },
-          ],
+          options: relationshipOptions,
+        },
+        {
+          id: 'emergencyContact1PhoneCountryCode',
+          type: 'dropdown',
+          label: 'Emergency Contact 1 - Country Code',
+          placeholder: 'Select country code',
+          required: true,
+          options: countryCodeOptions,
+        },
+        {
+          id: 'emergencyContact1PhoneCountryCodeOther',
+          type: 'short-text',
+          label: 'Emergency Contact 1 - Other Country Code',
+          placeholder: 'e.g., +353',
+          description: 'Enter country code with + sign',
+          required: true,
+          showWhen: {
+            field: 'emergencyContact1PhoneCountryCode',
+            equals: 'Other',
+          },
         },
         {
           id: 'emergencyContact1Phone',
           type: 'short-text',
           label: 'Emergency Contact 1 - Phone Number',
-          description: 'Format: (###) ###-####',
+          description: 'Enter phone number without country code',
+          placeholder: 'e.g., 555-123-4567',
           required: true,
-          validationType: 'phone',
+          validationType: 'phoneInternational',
         },
+
+        // Emergency Contact 2 (Optional)
+        // Item 5: EC2 Name is always visible, but other EC2 fields are hidden until name is entered
         {
           id: 'emergencyContact2Name',
           type: 'short-text',
@@ -313,30 +572,69 @@ export const newHireFormConfig: FormConfig = {
           required: false,
         },
         {
+          // Item 5: Hidden until EC2 Name has a value
           id: 'emergencyContact2Relationship',
           type: 'dropdown',
           label: 'Emergency Contact 2 - Relationship',
           placeholder: 'Select relationship',
           required: false,
-          options: [
-            { label: 'Spouse', value: 'Spouse' },
-            { label: 'Parent', value: 'Parent' },
-            { label: 'Sibling', value: 'Sibling' },
-            { label: 'Child', value: 'Child' },
-            { label: 'Partner', value: 'Partner' },
-            { label: 'Friend', value: 'Friend' },
-            { label: 'Other Relative', value: 'Other Relative' },
-            { label: 'Other', value: 'Other' },
-          ],
+          options: relationshipOptions,
+          showWhen: {
+            field: 'emergencyContact2Name',
+            notEmpty: true,
+          },
         },
         {
+          // Item 5: Hidden until EC2 Name has a value
+          id: 'emergencyContact2PhoneCountryCode',
+          type: 'dropdown',
+          label: 'Emergency Contact 2 - Country Code',
+          placeholder: 'Select country code',
+          required: false,
+          options: countryCodeOptions,
+          showWhen: {
+            field: 'emergencyContact2Name',
+            notEmpty: true,
+          },
+        },
+        {
+          id: 'emergencyContact2PhoneCountryCodeOther',
+          type: 'short-text',
+          label: 'Emergency Contact 2 - Other Country Code',
+          placeholder: 'e.g., +353',
+          description: 'Enter country code with + sign',
+          required: false,
+          showWhen: {
+            field: 'emergencyContact2PhoneCountryCode',
+            equals: 'Other',
+          },
+        },
+        {
+          // Item 5: Hidden until EC2 Name has a value
           id: 'emergencyContact2Phone',
           type: 'short-text',
           label: 'Emergency Contact 2 - Phone Number',
-          description: 'Format: (###) ###-####',
+          description: 'Enter phone number without country code',
+          placeholder: 'e.g., 555-123-4567',
           required: false,
-          validationType: 'phone',
+          validationType: 'phoneInternational',
+          showWhen: {
+            field: 'emergencyContact2Name',
+            notEmpty: true,
+          },
         },
+      ],
+    },
+
+    // ============================================================
+    // SECTION 1E: Document Uploads
+    // ============================================================
+    {
+      id: 'document-uploads',
+      title: 'Document Uploads',
+      description: 'Upload required identification documents',
+      estimatedMinutes: 2,
+      questions: [
         {
           id: 'driversLicenseGovernmentId',
           type: 'file-upload',
@@ -350,17 +648,23 @@ export const newHireFormConfig: FormConfig = {
           id: 'resumeCV',
           type: 'file-upload',
           label: 'Resume / CV',
-          description: 'Accepted formats: PDF, DOC, DOCX (max 10MB). Optional for non-clinical roles.',
-          required: false,
+          description: 'Accepted formats: PDF, DOC, DOCX (max 10MB)',
+          required: true,
           accept: ['.pdf', '.doc', '.docx', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
           maxSize: 10,
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Other Names Documentation (Item 2 - Conditional on anyOtherNamesUsed)
+    // Only shown if user answered "Yes" to "Have you used any other names?"
+    // ============================================================
     {
       id: 'other-names-section',
       title: 'Other Names Documentation',
       estimatedMinutes: 1,
+      // Item 2: Section-level conditional - only show if user has other names
       showWhen: {
         field: 'anyOtherNamesUsed',
         equals: 'Yes',
@@ -377,6 +681,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Languages
+    // ============================================================
     {
       id: 'languages-section',
       title: 'Languages',
@@ -405,6 +713,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Clinical Staff Check
+    // ============================================================
     {
       id: 'clinical-question',
       title: 'Clinical Staff Check',
@@ -423,6 +735,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Non-Clinical Signature
+    // ============================================================
     {
       id: 'non-clinical-signature',
       title: 'Certification / Signature (Non-Clinical Staff)',
@@ -454,6 +770,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Licensing & Certifications (Clinical Staff Only)
+    // ============================================================
     {
       id: 'licensing-info',
       title: 'Licensing & Certifications Information',
@@ -726,6 +1046,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Education & Training
+    // ============================================================
     {
       id: 'education-section',
       title: 'Education & Training',
@@ -798,6 +1122,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Work History
+    // ============================================================
     {
       id: 'work-history',
       title: 'Work History Entry',
@@ -824,11 +1152,37 @@ export const newHireFormConfig: FormConfig = {
           },
         },
         {
+          id: 'contactPhoneCountryCode',
+          type: 'dropdown',
+          label: 'Contact Phone - Country Code',
+          placeholder: 'Select country code',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+          options: countryCodeOptions,
+        },
+        {
+          id: 'contactPhoneCountryCodeOther',
+          type: 'short-text',
+          label: 'Contact Phone - Other Country Code',
+          placeholder: 'e.g., +353',
+          description: 'Enter country code with + sign',
+          required: true,
+          showWhen: {
+            field: 'contactPhoneCountryCode',
+            equals: 'Other',
+          },
+        },
+        {
           id: 'contactPhoneNumber',
           type: 'short-text',
           label: 'Contact Phone Number',
+          description: 'Enter phone number without country code',
+          placeholder: 'e.g., 555-123-4567',
           required: true,
-          validationType: 'phone',
+          validationType: 'phoneInternational',
           showWhen: {
             field: 'isClinicalStaff',
             equals: 'Yes',
@@ -857,6 +1211,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Legal / Disciplinary History
+    // ============================================================
     {
       id: 'legal-disciplinary',
       title: 'License, Legal, or Disciplinary History',
@@ -965,6 +1323,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Health Questions
+    // ============================================================
     {
       id: 'health-questions',
       title: 'Health Questions',
@@ -1061,6 +1423,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Professional References
+    // ============================================================
     {
       id: 'professional-references',
       title: 'Professional Reference',
@@ -1099,6 +1465,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Physical Description
+    // ============================================================
     {
       id: 'physical-description',
       title: 'Physical Description',
@@ -1146,6 +1516,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: MD or DO Section
+    // ============================================================
     {
       id: 'md-do-section',
       title: 'MD or DO Section',
@@ -1169,6 +1543,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: NP or RN Section
+    // ============================================================
     {
       id: 'np-rn-section',
       title: 'NP or RN Section',
@@ -1204,6 +1582,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Sensitive Information
+    // ============================================================
     {
       id: 'sensitive-info',
       title: 'Sensitive Information',
@@ -1220,6 +1602,10 @@ export const newHireFormConfig: FormConfig = {
         },
       ],
     },
+
+    // ============================================================
+    // SECTION: Clinical Signature
+    // ============================================================
     {
       id: 'clinical-signature',
       title: 'Certification / Signature (Clinical Staff)',

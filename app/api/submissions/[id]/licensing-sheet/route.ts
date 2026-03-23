@@ -2,37 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSubmissionById } from '@/lib/local-storage';
 import ExcelJS from 'exceljs';
 
-// Parse license entries from text format
-function parseLicenseEntries(text: string): Array<{ state: string; licenseNumber: string; issued: string; expiration: string }> {
-  if (!text || text === 'NA' || text === 'N/A') return [];
-
-  const entries: Array<{ state: string; licenseNumber: string; issued: string; expiration: string }> = [];
-  const lines = text.split('\n').filter(line => line.trim());
-
-  for (const line of lines) {
-    // Try to parse format: "State – License# – Issued: date – Exp: date"
-    const match = line.match(/^([^–-]+)[–-]\s*([^–-]+)[–-]\s*(?:Issued:?\s*)?([^–-]+)[–-]\s*(?:Exp(?:iration)?:?\s*)?(.+)$/i);
-    if (match) {
-      entries.push({
-        state: match[1].trim(),
-        licenseNumber: match[2].trim(),
-        issued: match[3].trim(),
-        expiration: match[4].trim(),
-      });
-    } else {
-      // Fallback: just put the whole line in state field
-      entries.push({
-        state: line.trim(),
-        licenseNumber: '',
-        issued: '',
-        expiration: '',
-      });
-    }
-  }
-
-  return entries;
-}
-
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -54,296 +23,300 @@ export async function GET(
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Licensing Sheet');
 
-    // Set column widths to match the screenshot
-    sheet.getColumn(1).width = 45;  // A - Info/Labels
-    sheet.getColumn(2).width = 25;  // B - State License
-    sheet.getColumn(3).width = 18;  // C - License Number
-    sheet.getColumn(4).width = 12;  // D - Issued
-    sheet.getColumn(5).width = 12;  // E - Expiration
-    sheet.getColumn(6).width = 55;  // F - Education
-    sheet.getColumn(7).width = 35;  // G - Employment
-    sheet.getColumn(8).width = 12;  // H - Portals
-    sheet.getColumn(9).width = 12;  // I - Log-ins
-    sheet.getColumn(10).width = 15; // J - Notes
+    // Set column widths
+    sheet.getColumn(1).width = 30;  // A - Section
+    sheet.getColumn(2).width = 40;  // B - Field Label
+    sheet.getColumn(3).width = 60;  // C - Value
 
-    // Style for borders
-    const thinBorder: Partial<ExcelJS.Borders> = {
-      top: { style: 'thin' },
-      left: { style: 'thin' },
-      bottom: { style: 'thin' },
-      right: { style: 'thin' },
+    // Styles
+    const headerStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true, size: 14, color: { argb: 'FFFFFFFF' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A5568' } },
+      alignment: { horizontal: 'center', vertical: 'middle' },
+      border: {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      },
     };
 
-    // Get data values
-    const npi = String(data.npi || '');
-    const fullName = String(data.fullLegalName || '');
-    const credentials = String(data.typeOfProvider || '');
-    const specialty = String(data.specialty || '');
-    const personalEmail = String(data.personalEmailAddress || '');
-    const dob = String(data.dateOfBirth || '');
-    const pob = data.countryOfBirth === 'United States'
-      ? String(data.placeOfBirth || '')
-      : String(data.placeOfBirthInternational || '');
-    const ssn = String(data.socialSecurityNumber || '');
-    const address = String(data.homeMailingAddress || '');
-    const cityStateZip = String(data.cityStateZipCode || '');
-    const employer = String(data.employerPracticeName || '');
+    const sectionStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true, size: 12, color: { argb: 'FFFFFFFF' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF718096' } },
+      alignment: { vertical: 'middle' },
+      border: {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      },
+    };
 
-    // Education
-    const undergrad = String(data.undergraduateGraduatePrograms || '');
-    const medSchool = String(data.medicalSchoolProgram || '');
-    const residency = String(data.internshipsResidenciesFellowships || '');
-    const highSchool = String(data.highSchool || '');
-    const middleSchool = String(data.middleSchool || '');
+    const labelStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7FAFC' } },
+      alignment: { vertical: 'middle', wrapText: true },
+      border: {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      },
+    };
 
-    // Parse licenses
-    const activeLicenses = parseLicenseEntries(String(data.statesLicenseDetailsActive || ''));
-    const deaLicenses = parseLicenseEntries(String(data.deaLicenseNumbers || ''));
-    const csrLicenses = parseLicenseEntries(String(data.csrDetails || ''));
-    const boardCerts = parseLicenseEntries(String(data.boardCertificationsList || ''));
+    const valueStyle: Partial<ExcelJS.Style> = {
+      alignment: { vertical: 'middle', wrapText: true },
+      border: {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      },
+    };
 
     let currentRow = 1;
 
-    // ROW 1: Header with NPI
-    const headerRow = sheet.getRow(currentRow);
-    headerRow.values = [
-      `NPI: ${npi}`,
-      'State License',
-      'License Number',
-      'Issued',
-      'Expiration',
-      'Education',
-      'Employment',
-      'Portals',
-      'Log-ins',
-      'Notes'
-    ];
-    headerRow.font = { bold: true };
-    headerRow.eachCell((cell) => {
-      cell.border = thinBorder;
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
-    });
-    currentRow++;
-
-    // ROW 2: Name, credentials, first board cert, education, employment
-    const row2 = sheet.getRow(currentRow);
-    const firstBoardCert = boardCerts[0] || { state: '', licenseNumber: '', issued: '', expiration: '' };
-
-    // Build education text
-    const educationLines: string[] = [];
-    if (medSchool) educationLines.push(`Medical School: ${medSchool}`);
-    if (undergrad) educationLines.push(`Undergrad/Grad: ${undergrad}`);
-    if (highSchool) educationLines.push(`High School: ${highSchool}`);
-    if (middleSchool) educationLines.push(`Middle School: ${middleSchool}`);
-    if (residency) educationLines.push(`Residency/Fellowship: ${residency}`);
-
-    row2.values = [
-      `${fullName}, ${credentials}`,
-      firstBoardCert.state ? `${firstBoardCert.state}` : '',
-      firstBoardCert.licenseNumber,
-      firstBoardCert.issued,
-      firstBoardCert.expiration,
-      educationLines.join('\n'),
-      employer,
-      '',
-      '',
-      ''
-    ];
-    row2.eachCell((cell) => { cell.border = thinBorder; cell.alignment = { wrapText: true, vertical: 'top' }; });
-    row2.height = 60;
-    currentRow++;
-
-    // ROW 3: Specialty/additional board certs
-    if (specialty || boardCerts.length > 1) {
-      const row3 = sheet.getRow(currentRow);
-      const secondBoardCert = boardCerts[1] || { state: '', licenseNumber: '', issued: '', expiration: '' };
-      row3.values = [
-        specialty || '',
-        secondBoardCert.state || '',
-        secondBoardCert.licenseNumber || '',
-        secondBoardCert.issued || '',
-        secondBoardCert.expiration || '',
-        '', '', '', '', ''
-      ];
-      row3.eachCell((cell) => { cell.border = thinBorder; });
-      currentRow++;
-    }
-
-    // ROW 4: Personal Email
-    const emailRow = sheet.getRow(currentRow);
-    emailRow.values = [`Personal Email: ${personalEmail}`, '', '', '', '', '', '', '', '', ''];
-    emailRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // ROW 5: DOB with state license
-    const dobRow = sheet.getRow(currentRow);
-    const firstStateLicense = activeLicenses[0] || { state: '', licenseNumber: '', issued: '', expiration: '' };
-    dobRow.values = [
-      `DOB: ${dob}`,
-      firstStateLicense.state,
-      firstStateLicense.licenseNumber,
-      firstStateLicense.issued,
-      firstStateLicense.expiration,
-      '', '', '', '', ''
-    ];
-    dobRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // ROW 6: POB with state license
-    const pobRow = sheet.getRow(currentRow);
-    const secondStateLicense = activeLicenses[1] || { state: '', licenseNumber: '', issued: '', expiration: '' };
-    pobRow.values = [
-      `POB: ${pob}`,
-      secondStateLicense.state,
-      secondStateLicense.licenseNumber,
-      secondStateLicense.issued,
-      secondStateLicense.expiration,
-      '', '', '', '', ''
-    ];
-    pobRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // ROW 7: SSN with state license
-    const ssnRow = sheet.getRow(currentRow);
-    const thirdStateLicense = activeLicenses[2] || { state: '', licenseNumber: '', issued: '', expiration: '' };
-    ssnRow.values = [
-      `SSN: ${ssn}`,
-      thirdStateLicense.state,
-      thirdStateLicense.licenseNumber,
-      thirdStateLicense.issued,
-      thirdStateLicense.expiration,
-      '', '', '', '', ''
-    ];
-    ssnRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // ROW 8: Home/Mailing Address
-    const addrRow = sheet.getRow(currentRow);
-    addrRow.values = [`Home/ Mailing Address`, '', '', '', '', '', '', '', '', ''];
-    addrRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // ROW 9: Address value with more licenses
-    const addrValueRow = sheet.getRow(currentRow);
-    const fourthStateLicense = activeLicenses[3] || { state: '', licenseNumber: '', issued: '', expiration: '' };
-    addrValueRow.values = [
-      `${address}\n${cityStateZip}`,
-      fourthStateLicense.state,
-      fourthStateLicense.licenseNumber,
-      fourthStateLicense.issued,
-      fourthStateLicense.expiration,
-      '', '', '', '', ''
-    ];
-    addrValueRow.eachCell((cell) => { cell.border = thinBorder; cell.alignment = { wrapText: true }; });
-    currentRow++;
-
-    // Add remaining state licenses
-    for (let i = 4; i < activeLicenses.length; i++) {
-      const license = activeLicenses[i];
+    // Helper function to add a section header
+    const addSectionHeader = (title: string) => {
       const row = sheet.getRow(currentRow);
-      row.values = ['', license.state, license.licenseNumber, license.issued, license.expiration, '', '', '', '', ''];
-      row.eachCell((cell) => { cell.border = thinBorder; });
+      sheet.mergeCells(currentRow, 1, currentRow, 3);
+      row.getCell(1).value = title;
+      row.getCell(1).style = sectionStyle;
+      row.height = 25;
       currentRow++;
-    }
+    };
 
-    // DEA Licenses
-    for (const dea of deaLicenses) {
+    // Helper function to add a field row
+    const addField = (label: string, value: unknown) => {
       const row = sheet.getRow(currentRow);
-      row.values = ['', `${dea.state} DEA`, dea.licenseNumber, dea.issued, dea.expiration, '', '', '', '', ''];
-      row.eachCell((cell) => { cell.border = thinBorder; });
+      row.getCell(2).value = label;
+      row.getCell(2).style = labelStyle;
+
+      // Format the value
+      let displayValue = '';
+      if (value === null || value === undefined || value === '') {
+        displayValue = '-';
+      } else if (Array.isArray(value)) {
+        displayValue = value.join(', ');
+      } else if (typeof value === 'object') {
+        displayValue = JSON.stringify(value);
+      } else {
+        displayValue = String(value);
+      }
+
+      row.getCell(3).value = displayValue;
+      row.getCell(3).style = valueStyle;
+
+      // Auto-adjust row height for long content
+      if (displayValue.length > 80 || displayValue.includes('\n')) {
+        row.height = Math.min(100, 20 + (displayValue.split('\n').length * 15));
+      }
+
       currentRow++;
+    };
+
+    // Get full name
+    const firstName = String(data.firstName || '');
+    const middleName = String(data.middleName || '');
+    const lastName = String(data.lastName || '');
+    const suffix = String(data.suffix || '');
+    const fullName = [firstName, middleName, lastName, suffix].filter(Boolean).join(' ');
+
+    // Title row with name
+    const titleRow = sheet.getRow(currentRow);
+    sheet.mergeCells(currentRow, 1, currentRow, 3);
+    titleRow.getCell(1).value = `LICENSING SHEET: ${fullName}`;
+    titleRow.getCell(1).style = headerStyle;
+    titleRow.height = 30;
+    currentRow++;
+    currentRow++; // Empty row
+
+    // ===== PERSONAL INFORMATION =====
+    addSectionHeader('PERSONAL INFORMATION');
+    addField('Full Legal Name', fullName);
+    addField('Preferred Name', data.preferredName);
+    addField('Date of Birth', data.dateOfBirth);
+    addField('Country of Birth', data.countryOfBirth);
+    addField('Place of Birth', data.countryOfBirth === 'United States' ? data.placeOfBirth : data.placeOfBirthInternational);
+    addField('Gender', data.gender);
+    addField('Pronouns', data.pronouns);
+    addField('Citizenship Status', data.citizenshipStatus);
+    addField('Race / Ethnicity', data.raceEthnicity);
+    addField('Other Names Used?', data.anyOtherNamesUsed);
+    if (data.anyOtherNamesUsed === 'Yes') {
+      addField('Other Names Details', data.otherNamesUsedText);
+    }
+    currentRow++; // Empty row
+
+    // ===== CONTACT INFORMATION =====
+    addSectionHeader('CONTACT INFORMATION');
+    addField('Street Address', data.homeMailingAddress);
+    addField('Address Line 2', data.addressLine2);
+    addField('City', data.city);
+    addField('Country', data.addressCountry);
+    if (data.addressCountry === 'United States') {
+      addField('State', data.state);
+    } else {
+      addField('State / Province / Region', data.stateProvinceInternational);
+      addField('Country Name', data.countryName);
+    }
+    addField('Zip / Postal Code', data.zipCode);
+    addField('Phone Country Code', data.preferredPhoneCountryCode);
+    addField('Preferred Phone Number', data.preferredPhoneNumber);
+    addField('Personal Email', data.personalEmailAddress);
+    currentRow++; // Empty row
+
+    // ===== EMERGENCY CONTACTS =====
+    addSectionHeader('EMERGENCY CONTACTS');
+    addField('Emergency Contact 1 - Name', data.emergencyContact1Name);
+    addField('Emergency Contact 1 - Relationship', data.emergencyContact1Relationship);
+    addField('Emergency Contact 1 - Country Code', data.emergencyContact1PhoneCountryCode);
+    addField('Emergency Contact 1 - Phone', data.emergencyContact1Phone);
+    if (data.emergencyContact2Name) {
+      addField('Emergency Contact 2 - Name', data.emergencyContact2Name);
+      addField('Emergency Contact 2 - Relationship', data.emergencyContact2Relationship);
+      addField('Emergency Contact 2 - Country Code', data.emergencyContact2PhoneCountryCode);
+      addField('Emergency Contact 2 - Phone', data.emergencyContact2Phone);
+    }
+    currentRow++; // Empty row
+
+    // ===== LANGUAGES =====
+    if (data.speaksOtherLanguages) {
+      addSectionHeader('LANGUAGES');
+      addField('Speaks Other Languages?', data.speaksOtherLanguages);
+      if (data.speaksOtherLanguages === 'Yes') {
+        addField('Languages Spoken', data.languagesSpoken);
+      }
+      currentRow++; // Empty row
     }
 
-    // CSR Licenses
-    for (const csr of csrLicenses) {
-      const row = sheet.getRow(currentRow);
-      row.values = ['', `${csr.state} CSR`, csr.licenseNumber, csr.issued, csr.expiration, '', '', '', '', ''];
-      row.eachCell((cell) => { cell.border = thinBorder; });
-      currentRow++;
+    // ===== CLINICAL INFORMATION (if applicable) =====
+    if (data.isClinicalStaff === 'Yes') {
+      addSectionHeader('CLINICAL STAFF INFORMATION');
+      addField('Type of Provider', data.typeOfProvider);
+      addField('Specialty', data.specialty);
+      addField('NPI', data.npi);
+      addField('Maiden Name', data.maidenName);
+      addField("Mother's Maiden Name", data.mothersMaidenName);
+      currentRow++; // Empty row
+
+      // ===== LICENSING =====
+      addSectionHeader('LICENSING');
+      addField('States Licensed', data.statesLicensed);
+      addField('Active State License Details', data.statesLicenseDetailsActive);
+      addField('Inactive/Expired Licenses', data.statesLicenseDetailsInactive);
+      addField('DEA License Numbers', data.deaLicenseNumbers);
+      addField('CSR Details', data.csrDetails);
+      addField('Compact RN License?', data.hasCompactRNLicense);
+      if (data.hasCompactRNLicense === 'Yes') {
+        addField('Compact RN License Details', data.compactRNLicenseDetails);
+      }
+      currentRow++; // Empty row
+
+      // ===== BOARD CERTIFICATIONS =====
+      addSectionHeader('BOARD CERTIFICATIONS');
+      addField('Has Board Certificate?', data.hasBoardCertificate);
+      if (data.hasBoardCertificate === 'Yes') {
+        addField('Board Certifications List', data.boardCertificationsList);
+      }
+      currentRow++; // Empty row
+
+      // ===== EDUCATION =====
+      addSectionHeader('EDUCATION & TRAINING');
+      addField('Middle School', data.middleSchool);
+      addField('High School', data.highSchool);
+      addField('Undergraduate/Graduate Programs', data.undergraduateGraduatePrograms);
+      addField('Medical School Program', data.medicalSchoolProgram);
+      if (data.typeOfProvider === 'MD' || data.typeOfProvider === 'DO') {
+        addField('Internships/Residencies/Fellowships', data.internshipsResidenciesFellowships);
+        addField('Faculty Appointments', data.facultyAppointments);
+      }
+      currentRow++; // Empty row
+
+      // ===== WORK HISTORY =====
+      addSectionHeader('WORK HISTORY');
+      addField('Employer / Practice Name', data.employerPracticeName);
+      addField('Contact Name (Supervisor/HR)', data.contactNameSupervisorHR);
+      addField('Contact Phone Country Code', data.contactPhoneCountryCode);
+      addField('Contact Phone Number', data.contactPhoneNumber);
+      addField('Dates of Employment', data.datesOfEmployment);
+      addField('Reason for Leaving', data.reasonForLeaving);
+      currentRow++; // Empty row
+
+      // ===== LEGAL / DISCIPLINARY =====
+      addSectionHeader('LEGAL / DISCIPLINARY HISTORY');
+      addField('Convicted of Crime?', data.convictedOfCrime);
+      if (data.convictedOfCrime === 'Yes') {
+        addField('Crime Explanation', data.convictedOfCrimeExplanation);
+      }
+      addField('Disciplinary Actions?', data.disciplinaryActions);
+      if (data.disciplinaryActions === 'Yes') {
+        addField('Disciplinary Explanation', data.disciplinaryActionsExplanation);
+      }
+      addField('License Revoked?', data.licenseRevoked);
+      if (data.licenseRevoked === 'Yes') {
+        addField('License Revoked Explanation', data.licenseRevokedExplanation);
+      }
+      addField('Under Investigation?', data.underInvestigation);
+      if (data.underInvestigation === 'Yes') {
+        addField('Investigation Explanation', data.underInvestigationExplanation);
+      }
+      currentRow++; // Empty row
+
+      // ===== HEALTH QUESTIONS =====
+      addSectionHeader('HEALTH QUESTIONS');
+      addField('Medical Condition Impairing Ability?', data.medicalConditionImpairAbility);
+      if (data.medicalConditionImpairAbility === 'Yes') {
+        addField('Medical Condition Explanation', data.medicalConditionExplanation);
+      }
+      addField('Substances Impairing Ability?', data.substancesImpairAbility);
+      if (data.substancesImpairAbility === 'Yes') {
+        addField('Substances Explanation', data.substancesExplanation);
+      }
+      addField('Substance Use Disorder (past 5 years)?', data.substanceUseDisorder);
+      if (data.substanceUseDisorder === 'Yes') {
+        addField('Substance Use Disorder Explanation', data.substanceUseDisorderExplanation);
+      }
+      currentRow++; // Empty row
+
+      // ===== PHYSICAL DESCRIPTION =====
+      addSectionHeader('PHYSICAL DESCRIPTION');
+      addField('Eye Color', data.eyeColor);
+      addField('Hair Color', data.hairColor);
+      addField('Height', data.height);
+      addField('Weight', data.weight);
+      currentRow++; // Empty row
+
+      // ===== PROFESSIONAL REFERENCES =====
+      addSectionHeader('PROFESSIONAL REFERENCES');
+      addField('Reference 1', data.professionalReference1);
+      addField('Reference 2', data.professionalReference2);
+      addField('Reference 3', data.professionalReference3);
+      currentRow++; // Empty row
     }
 
-    // Physical Description
-    const eyeColor = String(data.eyeColor || '');
-    const hairColor = String(data.hairColor || '');
-    const height = String(data.height || '');
-    const weight = String(data.weight || '');
+    // ===== SENSITIVE INFORMATION =====
+    addSectionHeader('SENSITIVE INFORMATION');
+    addField('Social Security Number', data.socialSecurityNumber);
+    currentRow++; // Empty row
 
-    const physRow = sheet.getRow(currentRow);
-    physRow.values = [`Eye Color: ${eyeColor}, Hair: ${hairColor}, Height: ${height}, Weight: ${weight}`, '', '', '', '', '', '', '', '', ''];
-    physRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // Other Names
-    const otherNames = String(data.anyOtherNamesUsed || '');
-    const otherNamesRow = sheet.getRow(currentRow);
-    otherNamesRow.values = [`Any Other Names Used?: ${otherNames}`, '', '', '', '', '', '', '', '', ''];
-    otherNamesRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // Citizenship
-    const citizenship = String(data.citizenshipStatus || data.citizenshipImmigrationStatus || '');
-    const citizenRow = sheet.getRow(currentRow);
-    citizenRow.values = [`Citizenship: ${citizenship}`, '', '', '', '', '', '', '', '', ''];
-    citizenRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // Race/Ethnicity
-    const race = String(data.raceEthnicity || '');
-    const raceRow = sheet.getRow(currentRow);
-    raceRow.values = [`Race / Ethnicity: ${race}`, '', '', '', '', '', '', '', '', ''];
-    raceRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // Languages
-    const languages = String(data.languagesSpoken || data.otherLanguages || '');
-    const langRow = sheet.getRow(currentRow);
-    langRow.values = [`Languages: ${languages}`, '', '', '', '', '', '', '', '', ''];
-    langRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // Empty rows
-    currentRow += 2;
-
-    // Background Questions
-    const backgroundQuestions = [
-      { field: 'criminalConviction', label: 'Have you ever been convicted of, pled guilty or nolo contendere to a crime (felony or misdemeanor) in any jurisdiction?' },
-      { field: 'disciplinaryActions', label: 'Do you currently have any disciplinary actions, investigations, or pending complaints against any health care license in any jurisdiction?' },
-      { field: 'licenseRevoked', label: 'Have you ever had a license revoked, suspended, or otherwise acted against in another state or country?' },
-      { field: 'underInvestigation', label: 'Are you currently under investigation in any jurisdiction?' },
-      { field: 'medicalConditions', label: 'Do you have any medical condition(s) that could impair your ability to practice safely?' },
-      { field: 'substanceUse', label: 'Do you use any substances that impair your ability to practice safely?' },
-      { field: 'substanceDisorder', label: 'Have you been treated for or diagnosed with a substance use disorder in the past 5 years?' },
-    ];
-
-    for (const q of backgroundQuestions) {
-      const answer = String(data[q.field] || '');
-      const row = sheet.getRow(currentRow);
-      row.values = [`${q.label}: ${answer}`, '', '', '', '', '', '', '', '', ''];
-      row.eachCell((cell) => { cell.border = thinBorder; cell.alignment = { wrapText: true }; });
-      row.height = 30;
-      currentRow++;
+    // ===== CERTIFICATION =====
+    addSectionHeader('CERTIFICATION / SIGNATURE');
+    if (data.isClinicalStaff === 'Yes') {
+      addField('Printed Name', data.printedNameClinical);
+      addField('Signature Date', data.dateClinical);
+    } else {
+      addField('Printed Name', data.printedName);
+      addField('Signature Date', data.signatureDate);
     }
+    currentRow++; // Empty row
 
-    // Empty row
-    currentRow += 2;
-
-    // Emergency Contact
-    const emergencyName = String(data.emergencyContactName || '');
-    const emergencyPhone = String(data.emergencyContactNumber || '');
-    const emergencyRow = sheet.getRow(currentRow);
-    emergencyRow.values = [`Emergency Contact: ${emergencyName}, ${emergencyPhone}`, '', '', '', '', '', '', '', '', ''];
-    emergencyRow.eachCell((cell) => { cell.border = thinBorder; });
-    currentRow++;
-
-    // Empty row
-    currentRow += 2;
-
-    // Professional References
-    const references = String(data.professionalReferences || '');
-    const refRow = sheet.getRow(currentRow);
-    refRow.values = [`Professional References:\n${references}`, '', '', '', '', '', '', '', '', ''];
-    refRow.eachCell((cell) => { cell.border = thinBorder; cell.alignment = { wrapText: true, vertical: 'top' }; });
-    refRow.height = 80;
+    // ===== SUBMISSION METADATA =====
+    addSectionHeader('SUBMISSION INFORMATION');
+    addField('Submission ID', submission.id);
+    addField('Submitted At', new Date(submission.timestamp).toLocaleString());
+    addField('Status', submission.status || 'pending');
 
     // Generate the file
     const buffer = await workbook.xlsx.writeBuffer();

@@ -7,10 +7,17 @@ interface DropdownProps {
   question: DropdownQuestion;
   register: UseFormRegister<Record<string, unknown>>;
   errors: FieldErrors;
+  // Item 13: onBlur callback for inline validation
+  onBlur?: () => void;
 }
 
-export function Dropdown({ question, register, errors }: DropdownProps) {
+export function Dropdown({ question, register, errors, onBlur }: DropdownProps) {
   const error = errors[question.id];
+
+  // Get registration props and merge with our onBlur
+  const registrationProps = register(question.id, {
+    required: question.required ? 'Please select an option' : false,
+  });
 
   return (
     <div className="space-y-2">
@@ -25,11 +32,14 @@ export function Dropdown({ question, register, errors }: DropdownProps) {
         <select
           id={question.id}
           className={`form-input appearance-none cursor-pointer pr-10 ${error ? 'error' : ''}`}
-          {...register(question.id, {
-            required: question.required ? 'Please select an option' : false,
-          })}
+          {...registrationProps}
+          onBlur={(e) => {
+            registrationProps.onBlur(e); // Call react-hook-form's onBlur
+            onBlur?.(); // Call our custom onBlur for validation
+          }}
         >
           <option value="">{question.placeholder || 'Select an option'}</option>
+          {/* Each option displays label but submits value */}
           {question.options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}

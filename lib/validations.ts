@@ -18,6 +18,25 @@ export const phonePattern = {
   message: 'Please enter phone number in format: ###-###-####',
 };
 
+// International phone number validation (allows various formats)
+export const phoneInternationalPattern = {
+  value: /^[\d\s\-().]{6,20}$/,
+  message: 'Please enter a valid phone number (6-20 digits)',
+};
+
+// US ZIP code validation (5 digits or ZIP+4 format)
+export const zipCodePattern = {
+  value: /^\d{5}(-\d{4})?$/,
+  message: 'Please enter a valid ZIP code (12345 or 12345-6789)',
+};
+
+// Format ZIP code as user types
+export function formatZipCode(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 9);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+}
+
 // Date validation functions
 export function validateDateNotInFuture(value: string): string | true {
   if (!value) return true;
@@ -87,7 +106,7 @@ export function validateSignatureDate(value: string): string | true {
 }
 
 // Validation type for form fields
-export type ValidationType = 'email' | 'ssn' | 'phone' | 'birthDate' | 'signatureDate' | 'pastDate';
+export type ValidationType = 'email' | 'ssn' | 'phone' | 'phoneInternational' | 'birthDate' | 'signatureDate' | 'pastDate' | 'zipCode' | 'confirmEmail';
 
 // Get validation rules based on type
 export function getValidationRules(validationType?: ValidationType): {
@@ -101,6 +120,8 @@ export function getValidationRules(validationType?: ValidationType): {
       return { pattern: ssnPattern };
     case 'phone':
       return { pattern: phonePattern };
+    case 'phoneInternational':
+      return { pattern: phoneInternationalPattern };
     case 'birthDate':
       return {
         validate: (value: unknown) => {
@@ -122,6 +143,12 @@ export function getValidationRules(validationType?: ValidationType): {
           return validateDateNotInFuture(value);
         },
       };
+    case 'zipCode':
+      return { pattern: zipCodePattern };
+    case 'confirmEmail':
+      // confirmEmail validation is handled separately in the form component
+      // as it needs to compare against another field value
+      return { pattern: emailPattern };
     default:
       return {};
   }
@@ -140,4 +167,10 @@ export function formatPhone(value: string): string {
   if (digits.length <= 3) return digits;
   if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
   return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+export function formatPhoneInternational(value: string): string {
+  // Allow digits, spaces, dashes, parentheses, and periods
+  // Just strip out any characters that aren't in the allowed set
+  return value.replace(/[^\d\s\-().]/g, '').slice(0, 20);
 }

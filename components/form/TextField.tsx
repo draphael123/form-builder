@@ -2,7 +2,7 @@
 
 import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { TextQuestion } from '@/types/form';
-import { getValidationRules, formatSSN, formatPhone } from '@/lib/validations';
+import { getValidationRules, formatSSN, formatPhone, formatPhoneInternational, formatZipCode } from '@/lib/validations';
 import { useCallback, useState } from 'react';
 
 interface TextFieldProps {
@@ -27,7 +27,7 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
   // Get validation rules based on type
   const validationRules = getValidationRules(validationType);
 
-  // Handle input masking for SSN and phone
+  // Handle input masking for SSN, phone, and zip code
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!setValue) return;
 
@@ -38,6 +38,10 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
       formattedValue = formatSSN(value);
     } else if (validationType === 'phone') {
       formattedValue = formatPhone(value);
+    } else if (validationType === 'phoneInternational') {
+      formattedValue = formatPhoneInternational(value);
+    } else if (validationType === 'zipCode') {
+      formattedValue = formatZipCode(value);
     }
 
     if (formattedValue !== value) {
@@ -45,16 +49,22 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
     }
   }, [validationType, setValue, question.id]);
 
+  // Get email value for confirmEmail validation
+  const emailValue = watch ? watch('personalEmailAddress') as string : '';
+
   // Get placeholder text based on validation type
   const getPlaceholder = () => {
     if (question.placeholder) return question.placeholder;
     switch (validationType) {
       case 'email':
+      case 'confirmEmail':
         return 'you@example.com';
       case 'ssn':
         return '###-##-####';
       case 'phone':
         return '(###) ###-####';
+      case 'zipCode':
+        return '12345 or 12345-6789';
       default:
         return undefined;
     }
@@ -66,11 +76,9 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
     return 'text';
   };
 
-  const commonProps = {
-    id: question.id,
-    placeholder: getPlaceholder(),
-    className: `form-input ${error ? 'error' : ''}`,
-    ...register(question.id, {
+  // Build validation rules, adding confirmEmail check if applicable
+  const buildValidation = () => {
+    const baseRules = {
       required: question.required ? 'This field is required' : false,
       minLength: question.minLength
         ? { value: question.minLength, message: `Minimum ${question.minLength} characters` }
@@ -79,11 +87,34 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
         ? { value: question.maxLength, message: `Maximum ${question.maxLength} characters` }
         : undefined,
       ...validationRules,
-    }),
+    };
+
+    // Add custom validation for confirmEmail type
+    if (validationType === 'confirmEmail') {
+      return {
+        ...baseRules,
+        validate: (value: unknown) => {
+          if (!value || typeof value !== 'string') return true;
+          if (value !== emailValue) {
+            return 'Email addresses do not match';
+          }
+          return true;
+        },
+      };
+    }
+
+    return baseRules;
   };
 
-  // For SSN and phone, we need to handle onChange for masking
-  const inputProps = validationType === 'ssn' || validationType === 'phone'
+  const commonProps = {
+    id: question.id,
+    placeholder: getPlaceholder(),
+    className: `form-input ${error ? 'error' : ''}`,
+    ...register(question.id, buildValidation()),
+  };
+
+  // For SSN, phone, and zip code, we need to handle onChange for masking
+  const inputProps = validationType === 'ssn' || validationType === 'phone' || validationType === 'phoneInternational' || validationType === 'zipCode'
     ? { ...commonProps, onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
         commonProps.onChange(e); // Call react-hook-form's onChange
         handleChange(e); // Apply masking
@@ -98,8 +129,14 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
         return 'Your Social Security Number is encrypted and securely stored. It will only be used for employment verification purposes.';
       case 'phone':
         return 'Please enter a valid 10-digit US phone number.';
+      case 'phoneInternational':
+        return 'Enter your phone number without the country code (selected separately).';
       case 'email':
         return 'We\'ll use this email to send you important updates about your application.';
+      case 'confirmEmail':
+        return 'Please re-enter your email to confirm it matches.';
+      case 'zipCode':
+        return 'Enter a valid US ZIP code (5 digits) or ZIP+4 format (12345-6789).';
       default:
         return null;
     }

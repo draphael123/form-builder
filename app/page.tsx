@@ -294,12 +294,30 @@ export default function FormPage() {
   };
 
   // Check if a question should be shown based on conditional logic
+  // Supports both "equals" (exact match) and "notEmpty" (has any value) conditions
   const shouldShowQuestion = useCallback((question: Question): boolean => {
     if (!question.showWhen) return true;
 
-    const { field, equals } = question.showWhen;
+    const { field, equals, notEmpty } = question.showWhen;
     const currentValue = watchedValues[field];
 
+    // Handle "notEmpty" condition - show when field has any non-empty value
+    if (notEmpty) {
+      if (currentValue === undefined || currentValue === null || currentValue === '') {
+        return false;
+      }
+      // For arrays, check if there's at least one item
+      if (Array.isArray(currentValue)) {
+        return currentValue.length > 0;
+      }
+      // For strings, check if it's not just whitespace
+      if (typeof currentValue === 'string') {
+        return currentValue.trim().length > 0;
+      }
+      return true;
+    }
+
+    // Handle "equals" condition
     // Handle undefined/null currentValue
     if (currentValue === undefined || currentValue === null) {
       return false;
@@ -1037,9 +1055,11 @@ export default function FormPage() {
                     )}
                   />
 
+                  {/* Item 10: hideTitle=true since title is already shown in sticky header above */}
                   <FormSection
                     title={currentSection.title}
                     description={currentSection.description}
+                    hideTitle={true}
                   >
                     {currentSection.questions.map((question) => renderQuestion(question))}
                   </FormSection>

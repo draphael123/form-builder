@@ -13,7 +13,7 @@ export type QuestionType =
   | 'file-upload';
 
 // Validation types for fields
-export type ValidationType = 'email' | 'ssn' | 'phone' | 'birthDate' | 'signatureDate' | 'pastDate';
+export type ValidationType = 'email' | 'ssn' | 'phone' | 'phoneInternational' | 'birthDate' | 'signatureDate' | 'pastDate' | 'zipCode' | 'confirmEmail';
 
 // Base question interface
 export interface BaseQuestion {
@@ -27,9 +27,11 @@ export interface BaseQuestion {
 }
 
 // Conditional logic for showing/hiding questions
+// Supports "equals" for exact match or "notEmpty" for checking if field has any value
 export interface ConditionalLogic {
   field: string;
-  equals: string | string[];
+  equals?: string | string[];
+  notEmpty?: boolean; // Show when the field has any non-empty value
 }
 
 // Specific question types
