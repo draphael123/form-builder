@@ -1,30 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addSubmission } from '@/lib/local-storage';
 
-// Convert Google Drive/Docs URLs to =HYPERLINK() formulas so they render as
-// clickable links in Google Sheets (works because valueInputOption: USER_ENTERED
-// interprets formula strings).
-function toHyperlinkIfDriveUrl(value: string): string {
-  if (
-    value.includes('drive.google.com') ||
-    value.includes('docs.google.com')
-  ) {
-    // Escape any double-quotes inside the URL (rare but safe)
-    const safeUrl = value.replace(/"/g, '""');
-    return `=HYPERLINK("${safeUrl}", "📎 Click to View")`;
-  }
-  return value;
-}
-
-// Check if Google Sheets is configured
-const isGoogleSheetsConfigured = () => {
-  return !!(
-    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
-    process.env.GOOGLE_PRIVATE_KEY &&
-    process.env.GOOGLE_SPREADSHEET_ID
-  );
-};
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.json();
