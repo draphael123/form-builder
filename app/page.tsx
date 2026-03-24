@@ -35,6 +35,7 @@ import { MiniProgressMap } from '@/components/MiniProgressMap';
 import { FieldCompletionCounter } from '@/components/FieldCompletionCounter';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { SkipToReviewButton } from '@/components/SkipToReviewButton';
+import { SectionIcon } from '@/components/SectionIcon';
 
 export default function FormPage() {
   const router = useRouter();
@@ -979,24 +980,28 @@ export default function FormPage() {
         )}
 
         {/* Form Header Card */}
-        <div className="form-card mb-6 animate-fade-in-up">
+        <div className="form-card branded-header mb-6 animate-fade-in-up">
           <div className="p-8 sm:p-10">
             <div className="flex items-center justify-between mb-6">
-              <Image
-                src="/fountain-logo.png"
-                alt="Fountain"
-                width={140}
-                height={40}
-                priority
-              />
-              <span className="badge badge-terracotta">New Hire</span>
+              <div className="flex items-center gap-4">
+                <Image
+                  src="/fountain-logo.png"
+                  alt="Fountain"
+                  width={140}
+                  height={40}
+                  priority
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="badge badge-terracotta">New Hire</span>
+              </div>
             </div>
 
-            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[var(--color-charcoal)] tracking-tight mb-3">
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-[var(--color-charcoal)] tracking-tight mb-3">
               {newHireFormConfig.title}
             </h1>
             {newHireFormConfig.description && (
-              <p className="text-[var(--color-warm-gray)] leading-relaxed whitespace-pre-line">
+              <p className="text-[var(--color-warm-gray)] leading-relaxed whitespace-pre-line text-base">
                 {newHireFormConfig.description}
               </p>
             )}
@@ -1025,7 +1030,10 @@ export default function FormPage() {
                     >
                       {/* Section Preview Tooltip */}
                       <div className="section-preview-tooltip">
-                        <div>{section.title}</div>
+                        <div className="flex items-center gap-2">
+                          <SectionIcon sectionId={section.id} className="w-4 h-4 opacity-70" />
+                          <span>{section.title}</span>
+                        </div>
                         <div className="section-preview-questions">
                           {section.questions.filter(shouldShowQuestion).length} questions
                           {section.estimatedMinutes && ` · ~${section.estimatedMinutes} min`}
@@ -1037,7 +1045,7 @@ export default function FormPage() {
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         ) : (
-                          index + 1
+                          <SectionIcon sectionId={section.id} className="w-3.5 h-3.5" />
                         )}
                       </span>
                       <span className="hidden sm:inline">{section.title.length > 20 ? section.title.substring(0, 20) + '...' : section.title}</span>
@@ -1055,12 +1063,13 @@ export default function FormPage() {
             <div className="p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="font-display text-2xl font-semibold text-[var(--color-terracotta)]">
+                  <div className="flex items-center gap-2 bg-[var(--color-terracotta)]/10 px-3 py-1.5 rounded-full">
+                    <span className="text-xs font-medium text-[var(--color-terracotta)] uppercase tracking-wide">Step</span>
+                    <span className="font-display text-lg font-bold text-[var(--color-terracotta)]">
                       {currentPage + 1}
                     </span>
-                    <span className="text-[var(--color-warm-gray-light)]">/</span>
-                    <span className="text-[var(--color-warm-gray)]">{totalPages}</span>
+                    <span className="text-[var(--color-terracotta)]/50">of</span>
+                    <span className="font-display text-lg font-semibold text-[var(--color-terracotta)]/70">{totalPages}</span>
                   </div>
                   <div className="h-6 w-px bg-[var(--color-parchment)]" />
                   <span className="text-sm text-[var(--color-warm-gray)]">
@@ -1148,7 +1157,12 @@ export default function FormPage() {
                 >
                   {/* Sticky Section Header */}
                   <div className="sticky-section-header">
-                    <span className="sticky-section-title">{currentSection.title}</span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--color-terracotta)]/10 flex items-center justify-center text-[var(--color-terracotta)]">
+                        <SectionIcon sectionId={currentSection.id} className="w-4 h-4" />
+                      </div>
+                      <span className="sticky-section-title">{currentSection.title}</span>
+                    </div>
                     <div className="sticky-section-meta">
                       {currentSection.estimatedMinutes && (
                         <span className="section-time-estimate">
