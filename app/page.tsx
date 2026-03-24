@@ -56,6 +56,7 @@ export default function FormPage() {
   const [showDocumentsChecklist, setShowDocumentsChecklist] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
+  const isSubmittingRef = useRef(false); // Extra protection against double submission
 
   // Accessibility
   const { settings } = useAccessibility();
@@ -109,6 +110,46 @@ export default function FormPage() {
       document.title = baseTitle;
     };
   });
+
+  // Handle browser back button - navigate between form sections instead of leaving
+  useEffect(() => {
+    // Push initial state
+    if (typeof window !== 'undefined' && !window.history.state?.formPage) {
+      window.history.replaceState({ formPage: currentPage, isReview: showReviewPage }, '');
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state?.formPage !== undefined) {
+        const targetPage = event.state.formPage;
+        const isReview = event.state.isReview;
+
+        if (isReview) {
+          setShowReviewPage(true);
+        } else {
+          setShowReviewPage(false);
+          setCurrentPage(targetPage);
+        }
+      } else {
+        // No form state in history, go to first page
+        if (currentPage > 0 || showReviewPage) {
+          setShowReviewPage(false);
+          setCurrentPage(0);
+          // Push new state to prevent actual navigation away
+          window.history.pushState({ formPage: 0, isReview: false }, '');
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentPage, showReviewPage]);
+
+  // Push history state when page changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ formPage: currentPage, isReview: showReviewPage }, '');
+    }
+  }, [currentPage, showReviewPage]);
 
   // Auto-save hook
   const {
@@ -652,6 +693,12 @@ export default function FormPage() {
   };
 
   const onSubmit = async (data: Record<string, unknown>) => {
+    // Prevent duplicate submissions using ref (extra safety beyond disabled button)
+    if (isSubmittingRef.current) {
+      console.log('Submission already in progress, ignoring duplicate');
+      return;
+    }
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -692,6 +739,7 @@ export default function FormPage() {
       setSubmitError('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
+      isSubmittingRef.current = false;
     }
   };
 

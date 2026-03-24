@@ -2,7 +2,9 @@
 
 import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form';
 import { FileUploadQuestion } from '@/types/form';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
+
+const UPLOAD_TIMEOUT_MS = 60000; // 60 second timeout for file uploads
 
 interface FileUploadProps {
   question: FileUploadQuestion;
@@ -65,6 +67,7 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const acceptString = question.accept?.join(',') || '*';
   const maxSizeMB = question.maxSize || 10;
@@ -79,6 +82,12 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
   const uploadFile = useCallback(async (file: File) => {
     setIsUploading(true);
     setUploadError(null);
+
+    // Create abort controller for timeout
+    abortControllerRef.current = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortControllerRef.current?.abort();
+    }, UPLOAD_TIMEOUT_MS);
 
     try {
       // Convert file to base64
@@ -113,8 +122,10 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
           mimeType: file.type || 'application/octet-stream',
           submitterName,
         }),
+        signal: abortControllerRef.current?.signal,
       });
 
+      clearTimeout(timeoutId);
       const result = await response.json();
 
       if (result.success) {
@@ -133,11 +144,18 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
         setValue(question.id, '');
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error('Upload error:', err);
-      setUploadError('Failed to upload file. Please try again.');
+      // Check if it was a timeout/abort error
+      if (err instanceof Error && err.name === 'AbortError') {
+        setUploadError('Upload timed out. Please try again with a smaller file or check your connection.');
+      } else {
+        setUploadError('Failed to upload file. Please try again.');
+      }
       setValue(question.id, '');
     } finally {
       setIsUploading(false);
+      abortControllerRef.current = null;
     }
   }, [question.id, setValue, submitterName]);
 

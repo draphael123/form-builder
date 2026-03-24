@@ -1,8 +1,8 @@
 // Validation patterns and functions for form fields
 
-// Email validation
+// Email validation - supports + tags, subdomains, and newer TLDs (2-63 chars)
 export const emailPattern = {
-  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,63}$/,
   message: 'Please enter a valid email address',
 };
 
@@ -162,14 +162,19 @@ export function formatSSN(value: string): string {
 }
 
 export function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 10);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  const digits = value.replace(/\D/g, '');
+  // For numbers longer than 10 digits, don't format (likely international)
+  if (digits.length > 10) {
+    return digits.slice(0, 15); // Allow up to 15 digits (international max)
+  }
+  const trimmed = digits.slice(0, 10);
+  if (trimmed.length <= 3) return trimmed;
+  if (trimmed.length <= 6) return `${trimmed.slice(0, 3)}-${trimmed.slice(3)}`;
+  return `${trimmed.slice(0, 3)}-${trimmed.slice(3, 6)}-${trimmed.slice(6)}`;
 }
 
 export function formatPhoneInternational(value: string): string {
-  // Allow digits, spaces, dashes, parentheses, and periods
+  // Allow digits, spaces, dashes, parentheses, periods, and plus sign
   // Just strip out any characters that aren't in the allowed set
-  return value.replace(/[^\d\s\-().]/g, '').slice(0, 20);
+  return value.replace(/[^\d\s\-().+]/g, '').slice(0, 20);
 }

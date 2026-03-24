@@ -78,14 +78,16 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
 
   // Build validation rules, adding confirmEmail check if applicable
   const buildValidation = () => {
+    // Default maxLength based on field type to prevent spreadsheet overflow
+    const defaultMaxLength = isLongText ? 2000 : 500;
+    const effectiveMaxLength = question.maxLength || defaultMaxLength;
+
     const baseRules = {
       required: question.required ? 'This field is required' : false,
       minLength: question.minLength
         ? { value: question.minLength, message: `Minimum ${question.minLength} characters` }
         : undefined,
-      maxLength: question.maxLength
-        ? { value: question.maxLength, message: `Maximum ${question.maxLength} characters` }
-        : undefined,
+      maxLength: { value: effectiveMaxLength, message: `Maximum ${effectiveMaxLength} characters` },
       ...validationRules,
     };
 

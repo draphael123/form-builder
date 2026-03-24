@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import crypto from 'crypto';
 
 // Routes that require admin authentication
 const PROTECTED_ROUTES = [
   '/admin',
   '/api/submissions',
 ];
+
+// Routes that require CSRF protection (state-changing operations)
+const CSRF_PROTECTED_ROUTES = [
+  '/api/submissions',
+];
+
+const CSRF_HEADER_NAME = 'x-csrf-token';
+const CSRF_COOKIE_NAME = 'csrf_token';
 
 // Routes that should be rate limited more strictly
 const AUTH_ROUTES = [
@@ -75,6 +84,44 @@ export function middleware(request: NextRequest) {
       const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
+    }
+
+    // CSRF protection for state-changing operations (POST, PUT, DELETE, PATCH)
+    const isCsrfProtectedRoute = CSRF_PROTECTED_ROUTES.some(route =>
+      pathname.startsWith(route)
+    );
+    const isStateMutatingMethod = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method);
+
+    if (isCsrfProtectedRoute && isStateMutatingMethod) {
+      const cookieToken = request.cookies.get(CSRF_COOKIE_NAME)?.value;
+      const headerToken = request.headers.get(CSRF_HEADER_NAME);
+
+      // Validate double-submit cookie pattern
+      if (!cookieToken || !headerToken) {
+        return NextResponse.json(
+          { success: false, error: 'CSRF token missing' },
+          { status: 403 }
+        );
+      }
+
+      // Use timing-safe comparison to prevent timing attacks
+      try {
+        const tokensMatch = crypto.timingSafeEqual(
+          Buffer.from(cookieToken),
+          Buffer.from(headerToken)
+        );
+        if (!tokensMatch) {
+          return NextResponse.json(
+            { success: false, error: 'CSRF token invalid' },
+            { status: 403 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { success: false, error: 'CSRF token invalid' },
+          { status: 403 }
+        );
+      }
     }
   }
 
