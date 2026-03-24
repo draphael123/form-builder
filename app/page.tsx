@@ -698,6 +698,29 @@ export default function FormPage() {
       console.log('Submission already in progress, ignoring duplicate');
       return;
     }
+
+    // Validate required file uploads before submission
+    const missingFiles: string[] = [];
+    visibleSections.forEach(section => {
+      section.questions.forEach(question => {
+        if (
+          question.type === 'file-upload' &&
+          question.required &&
+          shouldShowQuestion(question)
+        ) {
+          const value = data[question.id];
+          if (!value || (typeof value === 'string' && value.trim() === '')) {
+            missingFiles.push(question.label);
+          }
+        }
+      });
+    });
+
+    if (missingFiles.length > 0) {
+      setSubmitError(`Please upload the following required files: ${missingFiles.join(', ')}`);
+      return;
+    }
+
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     setSubmitError(null);

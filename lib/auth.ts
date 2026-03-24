@@ -7,11 +7,13 @@ const sessions = new Map<string, {
   role: 'admin' | 'user';
   createdAt: number;
   expiresAt: number;
+  lastActivityAt: number;
   ipAddress: string;
 }>();
 
 // Constants
-const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours max session
+const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes idle timeout
 const SESSION_COOKIE_NAME = 'fb_session';
 
 /**
@@ -51,6 +53,7 @@ export function createSession(userId: string, role: 'admin' | 'user', ipAddress:
     role,
     createdAt: now,
     expiresAt: now + SESSION_DURATION,
+    lastActivityAt: now,
     ipAddress,
   });
 
@@ -61,7 +64,7 @@ export function createSession(userId: string, role: 'admin' | 'user', ipAddress:
 }
 
 /**
- * Get session by token
+ * Get session by token (also updates last activity)
  */
 export function getSession(token: string): { userId: string; role: 'admin' | 'user' } | null {
   const session = sessions.get(token);
@@ -70,11 +73,22 @@ export function getSession(token: string): { userId: string; role: 'admin' | 'us
     return null;
   }
 
-  // Check if expired
-  if (session.expiresAt < Date.now()) {
+  const now = Date.now();
+
+  // Check if session has expired (max duration)
+  if (session.expiresAt < now) {
     sessions.delete(token);
     return null;
   }
+
+  // Check if session has timed out due to inactivity
+  if (session.lastActivityAt + IDLE_TIMEOUT < now) {
+    sessions.delete(token);
+    return null;
+  }
+
+  // Update last activity time
+  session.lastActivityAt = now;
 
   return { userId: session.userId, role: session.role };
 }

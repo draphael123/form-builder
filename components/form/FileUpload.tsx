@@ -5,6 +5,62 @@ import { FileUploadQuestion } from '@/types/form';
 import { useState, useCallback, useRef } from 'react';
 
 const UPLOAD_TIMEOUT_MS = 60000; // 60 second timeout for file uploads
+const MAX_IMAGE_DIMENSION = 1920; // Max width/height for compressed images
+const COMPRESSION_QUALITY = 0.8; // JPEG quality (0-1)
+
+// Compress image before upload to reduce file size
+async function compressImage(file: File): Promise<File> {
+  // Only compress images
+  if (!file.type.startsWith('image/') || file.type === 'image/gif') {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Calculate new dimensions maintaining aspect ratio
+      if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+        if (width > height) {
+          height = (height / width) * MAX_IMAGE_DIMENSION;
+          width = MAX_IMAGE_DIMENSION;
+        } else {
+          width = (width / height) * MAX_IMAGE_DIMENSION;
+          height = MAX_IMAGE_DIMENSION;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      // Convert to blob
+      canvas.toBlob(
+        (blob) => {
+          if (blob && blob.size < file.size) {
+            // Only use compressed version if it's smaller
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          } else {
+            resolve(file); // Original is smaller, keep it
+          }
+        },
+        'image/jpeg',
+        COMPRESSION_QUALITY
+      );
+    };
+
+    img.onerror = () => resolve(file); // On error, use original
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 interface FileUploadProps {
   question: FileUploadQuestion;
@@ -90,6 +146,9 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
     }, UPLOAD_TIMEOUT_MS);
 
     try {
+      // Compress images before upload
+      const processedFile = await compressImage(file);
+
       // Convert file to base64
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -100,16 +159,16 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
           resolve(base64Data);
         };
         reader.onerror = reject;
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(processedFile);
       });
 
       // Generate preview for images
       let previewUrl: string | undefined;
-      if (file.type.startsWith('image/')) {
+      if (processedFile.type.startsWith('image/')) {
         previewUrl = await new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(processedFile);
         });
       }
 
@@ -118,8 +177,8 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fileBase64: base64,
-          fileName: file.name,
-          mimeType: file.type || 'application/octet-stream',
+          fileName: processedFile.name,
+          mimeType: processedFile.type || 'application/octet-stream',
           submitterName,
         }),
         signal: abortControllerRef.current?.signal,
@@ -130,11 +189,11 @@ export function FileUpload({ question, register, errors, watch, setValue }: File
 
       if (result.success) {
         const uploaded: UploadedFile = {
-          fileName: file.name,
+          fileName: processedFile.name,
           fileUrl: result.data.fileUrl,
           webViewLink: result.data.webViewLink,
           previewUrl,
-          fileType: file.type,
+          fileType: processedFile.type,
         };
         setUploadedFile(uploaded);
         // Store the Google Drive URL in the form
