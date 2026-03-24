@@ -1664,3 +1664,94 @@ export function getFormHeaders(config: FormConfig): string[] {
 
   return headers;
 }
+
+// Helper function to check if a field should be visible based on conditional logic
+export function isFieldVisible(
+  config: FormConfig,
+  fieldId: string,
+  formData: Record<string, unknown>
+): boolean {
+  // Find the question and its section
+  for (const section of config.sections) {
+    // Check section-level visibility first
+    if (section.showWhen) {
+      if (!checkCondition(section.showWhen, formData)) {
+        // If section is hidden, all its questions are hidden
+        const questionInSection = section.questions.find(q => {
+          if (q.type === 'multiple-choice-grid' || q.type === 'checkbox-grid') {
+            const gridQuestion = q as { rows: { value: string }[] };
+            return gridQuestion.rows.some(row => `${q.id}_${row.value}` === fieldId);
+          }
+          return q.id === fieldId;
+        });
+        if (questionInSection) {
+          return false;
+        }
+      }
+    }
+
+    // Check question-level visibility
+    for (const question of section.questions) {
+      const isMatch = question.type === 'multiple-choice-grid' || question.type === 'checkbox-grid'
+        ? (question as { rows: { value: string }[] }).rows.some(row => `${question.id}_${row.value}` === fieldId)
+        : question.id === fieldId;
+
+      if (isMatch) {
+        if (question.showWhen) {
+          return checkCondition(question.showWhen, formData);
+        }
+        return true; // No showWhen means always visible
+      }
+    }
+  }
+
+  // Field not found in config, assume visible (e.g., timestamp)
+  return true;
+}
+
+// Helper to check a conditional logic condition
+function checkCondition(
+  condition: { field: string; equals?: string | string[]; notEmpty?: boolean },
+  formData: Record<string, unknown>
+): boolean {
+  const { field, equals, notEmpty } = condition;
+  const currentValue = formData[field];
+
+  // Handle "notEmpty" condition
+  if (notEmpty) {
+    if (currentValue === undefined || currentValue === null || currentValue === '') {
+      return false;
+    }
+    if (Array.isArray(currentValue)) {
+      return currentValue.length > 0;
+    }
+    if (typeof currentValue === 'string') {
+      return currentValue.trim().length > 0;
+    }
+    return true;
+  }
+
+  // Handle "equals" condition
+  if (currentValue === undefined || currentValue === null) {
+    return false;
+  }
+
+  if (Array.isArray(equals)) {
+    return typeof currentValue === 'string' && equals.includes(currentValue);
+  }
+
+  return currentValue === equals;
+}
+
+// Helper function to escape special characters for spreadsheet/CSV compatibility
+export function escapeForSpreadsheet(value: string): string {
+  if (!value) return value;
+
+  // Replace newlines with space (or could use \n literal)
+  let escaped = value.replace(/\r?\n/g, ' ');
+
+  // Escape double quotes by doubling them
+  escaped = escaped.replace(/"/g, '""');
+
+  return escaped;
+}

@@ -377,6 +377,27 @@ export default function FormPage() {
     return newHireFormConfig.sections.filter((section) => shouldShowSection(section));
   }, [shouldShowSection]);
 
+  // Bug #5 Fix: Clear values for fields that become hidden due to conditional logic
+  // This prevents stale data from being submitted when user changes answers
+  useEffect(() => {
+    newHireFormConfig.sections.forEach((section) => {
+      // Check if section is hidden
+      const sectionVisible = shouldShowSection(section);
+
+      section.questions.forEach((question) => {
+        const questionVisible = sectionVisible && shouldShowQuestion(question);
+        const currentValue = watchedValues[question.id];
+
+        // If field is hidden but has a value, clear it
+        if (!questionVisible && currentValue !== undefined && currentValue !== '' && currentValue !== null) {
+          // Don't clear arrays that are empty
+          if (Array.isArray(currentValue) && currentValue.length === 0) return;
+          setValue(question.id, '', { shouldDirty: false });
+        }
+      });
+    });
+  }, [watchedValues.isClinicalStaff, watchedValues.hasBoardCertificate, watchedValues.typeOfProvider, watchedValues.emergencyContact2Name, shouldShowSection, shouldShowQuestion, setValue, watchedValues]);
+
   const totalPages = visibleSections.length;
   const currentSection = visibleSections[currentPage];
   const isLastPage = currentPage === totalPages - 1;
