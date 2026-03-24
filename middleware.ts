@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import crypto from 'crypto';
+
+// Constant-time string comparison to prevent timing attacks (Edge Runtime compatible)
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
 
 // Routes that require admin authentication
 const PROTECTED_ROUTES = [
@@ -105,18 +116,7 @@ export function middleware(request: NextRequest) {
       }
 
       // Use timing-safe comparison to prevent timing attacks
-      try {
-        const tokensMatch = crypto.timingSafeEqual(
-          Buffer.from(cookieToken),
-          Buffer.from(headerToken)
-        );
-        if (!tokensMatch) {
-          return NextResponse.json(
-            { success: false, error: 'CSRF token invalid' },
-            { status: 403 }
-          );
-        }
-      } catch {
+      if (!timingSafeEqual(cookieToken, headerToken)) {
         return NextResponse.json(
           { success: false, error: 'CSRF token invalid' },
           { status: 403 }
