@@ -24,17 +24,16 @@ export const phoneInternationalPattern = {
   message: 'Please enter a valid phone number (6-20 digits)',
 };
 
-// US ZIP code validation (5 digits or ZIP+4 format)
+// ZIP/Postal code validation (3-7 alphanumeric characters, supports international formats)
 export const zipCodePattern = {
-  value: /^\d{5}(-\d{4})?$/,
-  message: 'Please enter a valid ZIP code (12345 or 12345-6789)',
+  value: /^[A-Za-z0-9\s\-]{3,7}$/,
+  message: 'Please enter a valid postal code (3-7 characters)',
 };
 
 // Format ZIP code as user types
 export function formatZipCode(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 9);
-  if (digits.length <= 5) return digits;
-  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  // Allow alphanumeric, spaces, and hyphens, limit to 7 characters
+  return value.replace(/[^A-Za-z0-9\s\-]/g, '').slice(0, 7);
 }
 
 // Date validation functions
