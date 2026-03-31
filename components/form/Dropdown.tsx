@@ -32,6 +32,7 @@ export function Dropdown({ question, register, errors, onBlur }: DropdownProps) 
         <select
           id={question.id}
           className={`form-input appearance-none cursor-pointer pr-10 ${error ? 'error' : ''}`}
+          autoComplete={question.autocomplete || 'off'}
           {...registrationProps}
           onBlur={(e) => {
             registrationProps.onBlur(e); // Call react-hook-form's onBlur
