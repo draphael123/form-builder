@@ -24,6 +24,9 @@ export interface BaseQuestion {
   required?: boolean;
   showWhen?: ConditionalLogic;
   tooltip?: string;
+  gridColumn?: 'full' | 'half' | 'third';  // Layout hint for side-by-side rendering
+  autocomplete?: string;  // HTML autocomplete attribute (e.g. 'given-name', 'email')
+  defaultValue?: string;  // Default value to pre-fill
 }
 
 // Conditional logic for showing/hiding questions
