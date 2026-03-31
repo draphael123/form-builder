@@ -240,20 +240,70 @@ function logToFormResponses(spreadsheet, headers, row) {
     sheet = spreadsheet.getSheets()[0];
   }
 
-  // Add headers if sheet is empty
+  // --- Get or initialize the header row ---
+  var existingHeaders = [];
   if (sheet.getLastRow() === 0) {
+    // Brand-new sheet — write incoming headers as the first row
     sheet.appendRow(headers);
     sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
     sheet.setFrozenRows(1);
+    existingHeaders = headers.slice(); // copy
+  } else {
+    // Read the existing header row so we can match columns
+    var lastCol = sheet.getLastColumn();
+    if (lastCol > 0) {
+      existingHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    }
   }
 
-  // Convert Drive URLs to clickable HYPERLINK formulas
-  var processedRow = row.map(function(value) {
-    return toHyperlinkFormula(value);
-  });
+  // --- Build a lookup: existingHeader -> column index ---
+  var headerIndex = {};
+  for (var h = 0; h < existingHeaders.length; h++) {
+    headerIndex[existingHeaders[h]] = h;
+  }
 
-  // Add the row data
-  sheet.appendRow(processedRow);
+  // --- Check for any NEW headers not yet in the sheet and append them ---
+  var newHeaders = [];
+  for (var n = 0; n < headers.length; n++) {
+    if (headerIndex[headers[n]] === undefined) {
+      var newCol = existingHeaders.length + newHeaders.length;
+      headerIndex[headers[n]] = newCol;
+      newHeaders.push(headers[n]);
+    }
+  }
+
+  if (newHeaders.length > 0) {
+    // Write the new header labels into the header row
+    var startCol = existingHeaders.length + 1; // 1-indexed
+    sheet.getRange(1, startCol, 1, newHeaders.length).setValues([newHeaders]);
+    sheet.getRange(1, startCol, 1, newHeaders.length).setFontWeight('bold');
+  }
+
+  // --- Place each value in the column that matches its header ---
+  var totalCols = existingHeaders.length + newHeaders.length;
+  var alignedRow = new Array(totalCols);
+  for (var i = 0; i < totalCols; i++) {
+    alignedRow[i] = ''; // default empty
+  }
+
+  for (var j = 0; j < headers.length; j++) {
+    var colIdx = headerIndex[headers[j]];
+    if (colIdx !== undefined) {
+      var value = (j < row.length) ? row[j] : '';
+
+      // Strip base64 data URIs — these should have been uploaded to Drive
+      if (typeof value === 'string' && value.indexOf('data:') === 0 && value.indexOf('base64') !== -1) {
+        value = '(file upload error — base64 not processed)';
+        Logger.log('WARNING: base64 data found for column "' + headers[j] + '" — file upload may have failed');
+      }
+
+      alignedRow[colIdx] = toHyperlinkFormula(value);
+    }
+  }
+
+  // --- Write the aligned row ---
+  var nextRow = sheet.getLastRow() + 1;
+  sheet.getRange(nextRow, 1, 1, totalCols).setValues([alignedRow]);
 }
 
 function logToCascadingSheet(spreadsheet, headers, row) {
@@ -280,8 +330,15 @@ function logToCascadingSheet(spreadsheet, headers, row) {
     // Skip empty values
     if (value === undefined || value === null || value === '') continue;
 
+    var strValue = String(value);
+
+    // Strip base64 data URIs — flag instead of dumping raw data
+    if (strValue.indexOf('data:') === 0 && strValue.indexOf('base64') !== -1) {
+      strValue = '(file upload error — base64 not processed)';
+    }
+
     // Convert to string for processing
-    var displayValue = toHyperlinkFormula(String(value));
+    var displayValue = toHyperlinkFormula(strValue);
 
     cascadingRows.push([headers[i], displayValue]);
   }
