@@ -78,57 +78,18 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
 
   // Build validation rules, adding confirmEmail check if applicable
   const buildValidation = () => {
-    // Default maxLength based on field type to prevent spreadsheet overflow
     const defaultMaxLength = isLongText ? 2000 : 500;
     const effectiveMaxLength = question.maxLength || defaultMaxLength;
-
-    const baseRules = {
-      required: question.required ? 'This field is required' : false,
-      minLength: question.minLength
-        ? { value: question.minLength, message: `Minimum ${question.minLength} characters` }
-        : undefined,
-      maxLength: { value: effectiveMaxLength, message: `Maximum ${effectiveMaxLength} characters` },
-      ...validationRules,
-    };
-
-    // Add custom validation for confirmEmail type
-    if (validationType === 'confirmEmail') {
-      return {
-        ...baseRules,
-        validate: (value: unknown) => {
-          if (!value || typeof value !== 'string') return true;
-          if (value !== emailValue) {
-            return 'Email addresses do not match';
-          }
-          return true;
-        },
-      };
-    }
-
+    const baseRules = { required: question.required ? 'This field is required' : false, minLength: question.minLength ? { value: question.minLength, message: `Minimum ${question.minLength} characters` } : undefined, maxLength: { value: effectiveMaxLength, message: `Maximum ${effectiveMaxLength} characters` }, ...validationRules };
+    if (validationType === 'confirmEmail') { return { ...baseRules, validate: (value: unknown) => { if (!value || typeof value !== 'string') return true; if (value !== emailValue) { return 'Email addresses do not match'; } return true; } }; }
     return baseRules;
   };
 
-  const commonProps = {
-    id: question.id,
-    placeholder: getPlaceholder(),
-    className: `form-input ${error ? 'error' : ''}`,
-    ...register(question.id, buildValidation()),
-  };
-
-  // For SSN, phone, and zip code, we need to handle onChange for masking
-  const inputProps = validationType === 'ssn' || validationType === 'phone' || validationType === 'phoneInternational' || validationType === 'zipCode'
-    ? { ...commonProps, onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-        commonProps.onChange(e); // Call react-hook-form's onChange
-        handleChange(e); // Apply masking
-      }}
-    : commonProps;
-
-  // Get tooltip content based on field type
-  const getTooltip = () => {
-    if (question.tooltip) return question.tooltip;
-    switch (validationType) {
-      case 'ssn':
-        return 'Your Social Security Number is encrypted and securely stored. It will only be used for employment verification purposes.';
+  const commonProps = { id: question.id, placeholder: getPlaceholder(), className: `form-input ${error ? 'error' : ''}`, autoComplete: question.autocomplete || 'off', ...register(question.id, buildValidation()) };
+  const inputProps = validationType === 'ssn' || validationType === 'phone' || validationType === 'phoneInternational' || validationType === 'zipCode' ? { ...commonProps, onChange: (e: React.ChangeEvent<HTMLInputElement>) => { commonProps.onChange(e); handleChange(e); }} : commonProps;
+  const getTooltip = () => { if (question.tooltip) return question.tooltip; switch (validationType) { case 'ssn': return 'Your Social Security Number is encrypted and securely stored. It will only be used for employment verification purposes.'; case 'phone': return 'Please enter a valid 10-digit US phone number.'; case 'phoneInternational': return 'Enter your phone number without the country code (selected separately).'; case 'email': return "We'll use this email to send you important updates about your application."; case 'confirmEmail': return 'Please re-enter your email to confirm it matches.'; case 'zipCode': return 'Enter a valid US ZIP code (5 digits) or ZIP+4 format (12345-6789).'; default: return null; } };
+  const tooltip = getTooltip();
+3.';
       case 'phone':
         return 'Please enter a valid 10-digit US phone number.';
       case 'phoneInternational':
@@ -151,7 +112,7 @@ export function TextField({ question, register, errors, setValue, watch, onBlur 
     if (validationType !== 'ssn' || !currentValue || showSSN) return undefined;
     const formatted = formatSSN(currentValue);
     if (formatted.length < 7) return undefined;
-    return `•••-••-${formatted.slice(-4)}`;
+    return `â¢â¢â¢-â¢â¢-${formatted.slice(-4)}`;
   };
 
   const maskedValue = getMaskedValue();
