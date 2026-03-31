@@ -281,6 +281,21 @@ export default function FormPage() {
     }
   }, [setValue, announce]);
 
+  // Apply default values from form config on mount
+  useEffect(() => {
+    newHireFormConfig.sections.forEach((section) => {
+      section.questions.forEach((question) => {
+        if ('defaultValue' in question && question.defaultValue) {
+          const currentVal = watchedValues[question.id];
+          if (currentVal === undefined || currentVal === '' || currentVal === null) {
+            setValue(question.id, question.defaultValue, { shouldDirty: false });
+          }
+        }
+      });
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
+
   // Show draft banner on initial load if draft exists
   useEffect(() => {
     if (hasDraft) {
@@ -590,8 +605,19 @@ export default function FormPage() {
       }
     })();
 
+    // Determine grid column class based on question's gridColumn property
+    const gridClass = question.gridColumn === 'half'
+      ? 'field-col-half'
+      : question.gridColumn === 'third'
+        ? 'field-col-third'
+        : 'field-col-full';
+
+    // Determine validation state for visual feedback
+    const hasError = !!errors[question.id];
+    const isValidated = validatedFields.has(question.id) && !hasError;
+
     return (
-      <div key={question.id} className="relative">
+      <div key={question.id} className={`relative ${gridClass} ${isValidated ? 'field-validated' : ''} ${hasError ? 'field-has-error' : ''}`}>
         {questionElement}
         {/* Field completion indicator */}
         {isComplete && question.required && (
@@ -1036,7 +1062,7 @@ export default function FormPage() {
                         </div>
                         <div className="section-preview-questions">
                           {section.questions.filter(shouldShowQuestion).length} questions
-                          {section.estimatedMinutes && ` · ~${section.estimatedMinutes} min`}
+                          {section.estimatedMinutes && ` Â· ~${section.estimatedMinutes} min`}
                         </div>
                       </div>
                       <span className="stepper-number">
@@ -1057,50 +1083,39 @@ export default function FormPage() {
           </div>
         )}
 
-        {/* Progress Card */}
+        {/* Compact Progress Bar */}
         {!showReviewPage && (
           <div className="form-card mb-6 animate-fade-in-up stagger-2">
-            <div className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 bg-[var(--color-terracotta)]/10 px-3 py-1.5 rounded-full">
-                    <span className="text-xs font-medium text-[var(--color-terracotta)] uppercase tracking-wide">Step</span>
-                    <span className="font-display text-lg font-bold text-[var(--color-terracotta)]">
-                      {currentPage + 1}
-                    </span>
-                    <span className="text-[var(--color-terracotta)]/50">of</span>
-                    <span className="font-display text-lg font-semibold text-[var(--color-terracotta)]/70">{totalPages}</span>
-                  </div>
-                  <div className="h-6 w-px bg-[var(--color-parchment)]" />
-                  <span className="text-sm text-[var(--color-warm-gray)]">
-                    {questionCounts.startOfCurrentPage === questionCounts.endOfCurrentPage
-                      ? `Question ${questionCounts.startOfCurrentPage}`
-                      : `Questions ${questionCounts.startOfCurrentPage}–${questionCounts.endOfCurrentPage}`} of {questionCounts.total}
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-between gap-4 mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-[var(--color-terracotta)]">
+                    Step {currentPage + 1}/{totalPages}
                   </span>
-                </div>
-
-                <div className="flex items-center gap-3 flex-wrap">
-                  {/* Estimated time remaining */}
-                  <span className="flex items-center gap-1.5 text-xs text-[var(--color-warm-gray)] bg-[var(--color-parchment)] px-2 py-1 rounded-full">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="text-xs text-[var(--color-warm-gray)]">
+                    {questionCounts.startOfCurrentPage === questionCounts.endOfCurrentPage
+                      ? `Q${questionCounts.startOfCurrentPage}`
+                      : `Q${questionCounts.startOfCurrentPage}â${questionCounts.endOfCurrentPage}`}/{questionCounts.total}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs text-[var(--color-warm-gray)]">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {estimatedTimeRemaining}
                   </span>
-                  {/* Auto-save indicator */}
+                </div>
+                <div className="flex items-center gap-3">
                   <AutoSaveIndicator isSaving={isAutoSaving} lastSavedText={lastSavedText} />
-                  <span className="text-sm font-medium text-[var(--color-charcoal)]">
+                  <span className="text-sm font-bold text-[var(--color-charcoal)]">
                     {Math.round(progressPercentage)}%
                   </span>
-                  {/* Skip to review button */}
                   <SkipToReviewButton
                     progress={progressPercentage}
                     onSkip={() => setShowReviewPage(true)}
                   />
                 </div>
               </div>
-
-              <div className="progress-track">
+              <div className="progress-track" style={{ height: '6px' }}>
                 <div className="progress-fill" style={{ width: `${progressPercentage}%` }} />
               </div>
             </div>
@@ -1251,9 +1266,9 @@ export default function FormPage() {
               {/* Keyboard Navigation Hint */}
               <div className="keyboard-hint">
                 <span>Keyboard:</span>
-                <span className="keyboard-key">←</span>
+                <span className="keyboard-key">â</span>
                 <span>Previous</span>
-                <span className="keyboard-key">→</span>
+                <span className="keyboard-key">â</span>
                 <span>Next</span>
               </div>
 
@@ -1300,7 +1315,7 @@ export default function FormPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            <span>{settings.language === 'es' ? 'Tu información está segura y encriptada' : 'Your information is secure and encrypted'}</span>
+            <span>{settings.language === 'es' ? 'Tu informaciÃ³n estÃ¡ segura y encriptada' : 'Your information is secure and encrypted'}</span>
           </div>
         </footer>
       </div>
