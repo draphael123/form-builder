@@ -35,7 +35,7 @@ export function FormSection({ title, description, children, hideTitle = false }:
             </p>
           </div>
         )}
-        <div className="space-y-8">{children}</div>
+        <div className="form-fields-grid">{children}</div>
       </div>
     </div>
   );
