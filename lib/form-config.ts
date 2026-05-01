@@ -889,6 +889,19 @@ export const newHireFormConfig: FormConfig = {
           },
         },
         {
+          id: 'deaCertificateUpload',
+          type: 'file-upload',
+          label: 'DEA Certificate(s)',
+          description: 'Upload a copy of each DEA certificate listed above. Accepted formats: PDF, JPG, PNG (max 10MB). If you are an RN, skip this field.',
+          required: false,
+          accept: ['.pdf', '.jpg', '.jpeg', '.png', 'image/*', 'application/pdf'],
+          maxSize: 10,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+        },
+        {
           id: 'npi',
           type: 'short-text',
           label: 'National Provider Identifier - NPI',
@@ -1150,6 +1163,32 @@ export const newHireFormConfig: FormConfig = {
           showWhen: {
             field: 'typeOfProvider',
             equals: ['MD', 'DO'],
+          },
+        },
+        {
+          id: 'continuingEducationEnrolled',
+          type: 'dropdown',
+          label: 'Are you currently enrolled in any continuing education programs?',
+          placeholder: 'Select an option',
+          required: true,
+          showWhen: {
+            field: 'isClinicalStaff',
+            equals: 'Yes',
+          },
+          options: [
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' },
+          ],
+        },
+        {
+          id: 'continuingEducationDetails',
+          type: 'long-text',
+          label: 'Please describe your continuing education program(s).',
+          description: 'Include the program name, institution/provider, and expected completion date.\nFormat each program on a new line.\n\nExample:\nAdvanced Cardiac Life Support (ACLS) – American Heart Association – Expected: 06/2025',
+          required: true,
+          showWhen: {
+            field: 'continuingEducationEnrolled',
+            equals: 'Yes',
           },
         },
       ],
