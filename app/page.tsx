@@ -47,7 +47,7 @@ export default function FormPage() {
   const [saveEmail, setSaveEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [formStartTime] = useState(() => new Date());
+  const [_formStartTime] = useState(() => new Date());
   const [showReviewPage, setShowReviewPage] = useState(false);
   const [pageDirection, setPageDirection] = useState<'forward' | 'backward'>('forward');
   const [announcement, setAnnouncement] = useState('');
@@ -56,12 +56,12 @@ export default function FormPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showDocumentsChecklist, setShowDocumentsChecklist] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
-  const firstFieldRef = useRef<HTMLInputElement>(null);
+  const _firstFieldRef = useRef<HTMLInputElement>(null);
   const isSubmittingRef = useRef(false); // Extra protection against double submission
 
   // Accessibility
   const { settings } = useAccessibility();
-  const t = (key: TranslationKey, params?: Record<string, string | number>) =>
+  const _t = (key: TranslationKey, params?: Record<string, string | number>) =>
     getTranslation(key, settings.language, params);
 
   const {
@@ -461,7 +461,7 @@ export default function FormPage() {
   const isFirstPage = currentPage === 0;
 
   // Time tracking hook
-  const { getCompletionData, getElapsedTime } = useTimeTracking({
+  const { getCompletionData } = useTimeTracking({
     formId: 'new-hire-form',
     currentSectionId: currentSection?.id || 'intro',
     currentSectionTitle: currentSection?.title || 'Introduction',

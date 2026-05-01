@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // ===========================================
 // Google Apps Script for Fountain Onboarding
 // ===========================================

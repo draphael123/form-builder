@@ -162,15 +162,10 @@ export function formatSSN(value: string): string {
 }
 
 export function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  // For numbers longer than 10 digits, don't format (likely international)
-  if (digits.length > 10) {
-    return digits.slice(0, 15); // Allow up to 15 digits (international max)
-  }
-  const trimmed = digits.slice(0, 10);
-  if (trimmed.length <= 3) return trimmed;
-  if (trimmed.length <= 6) return `${trimmed.slice(0, 3)}-${trimmed.slice(3)}`;
-  return `${trimmed.slice(0, 3)}-${trimmed.slice(3, 6)}-${trimmed.slice(6)}`;
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
 export function formatPhoneInternational(value: string): string {

@@ -39,7 +39,7 @@ function LoginForm() {
 
       // Redirect to intended page
       router.push(redirectTo);
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred. Please try again.');
       setIsLoading(false);
     }

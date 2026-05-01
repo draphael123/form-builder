@@ -196,16 +196,6 @@ export default function AdminPage() {
     return { name: String(name), email: String(email), isClinical };
   };
 
-  // Get status badge
-  const getStatusBadge = (status: SubmissionStatus = 'pending') => {
-    const option = STATUS_OPTIONS.find(o => o.value === status) || STATUS_OPTIONS[0];
-    return (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${option.color}`}>
-        {option.label}
-      </span>
-    );
-  };
-
   // Stats
   const stats = useMemo(() => {
     const total = submissions.length;
